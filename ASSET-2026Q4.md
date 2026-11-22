@@ -15,6 +15,26 @@ Per-client history is also maintained in REDWOLF/ASSET-2026Q4.md and ASIS/ASSET-
 
 ####### <!-- ANCHOR MARKER - ADD ALL NEW ASSET ENTRIES DIRECTLY BELOW THIS LINE, NEVER DELETE OR EDIT PREVIOUS ASSET ENTRIES-->
 
+## ASSET:md-post 2026-11-23 → py-rss scheduled cron fired (5h late); 3 new Coinbase articles
+
+Scheduled run 45079164791 fired at 22:41 UTC (cron `30 17 * * *` — first ever `schedule` event, delayed ~5h, likely GitHub inactive-repo suppression). XML commit `d3b40297` at 22:45 UTC.
+
+Diff vs manual trigger (21:43 UTC, commit `4d9cdff6`):
+
+ANTHROPIC — no new articles (+1/-1 metadata only)
+
+COINBASE — 3 new articles added, 3 old dropped (sliding window):
+  + "Coinbase Powers the First Crypto-Backed, Conforming Mortgages by Better"
+  + "Coinbase and PNC expand partnership to bring stablecoin payment acceptance"
+  + "Building enterprise AI agents at Coinbase: engineering for trust, scale, and speed"
+  - "No Compromises: The case for Coinbase as the best place for institutions"
+  - "Create your own stablecoin with Coinbase"
+  - "Coinbase Australia Receives AFSL Licence: A New Chapter for Crypto in Australia"
+
+NINTENDO — no new articles (+1/-1 metadata only)
+
+OPENAI — no new articles (+1/-1 metadata only)
+
 ## ASSET:md-post 2026-11-23 → py-rss XML feed state after manual trigger (run 45073354311)
 
 Feed totals and new articles detected vs morning baseline (06:33 UTC commit 15de02d6):
