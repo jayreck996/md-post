@@ -1,0 +1,18 @@
+[submodule "XLS"]
+	path = XLS
+	url = https://github.com/jayreck996/XLS.git
+[submodule "IMG"]
+	path = IMG
+	url = https://github.com/jayreck996/IMG.git
+[submodule "JSON"]
+	path = JSON
+	url = https://github.com/jayreck996/JSON.git
+[submodule "JSONL"]
+	path = JSONL
+	url = https://github.com/jayreck996/JSONL.git
+[submodule "PDF"]
+	path = PDF
+	url = https://github.com/jayreck996/PDF.git
+[submodule "YML"]
+	path = YML
+	url = https://github.com/jayreck996/YML.git

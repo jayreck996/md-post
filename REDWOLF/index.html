@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red Wolf — Weekly Content Review</title>
+<script>window.__MD_CFG__={title:"Red Wolf",tokenVar:"__MD_REDWOLF__",csvPath:"REDWOLF/XLS-2026Q4.xls",logo:"logo.jpg"}</script>
+<script src="config.js" onerror="void 0"></script>
+<link rel="stylesheet" href="../app.css">
+</head>
+<body>
+
+<header>
+  <img id="client-logo" src="logo.jpg" alt="Red Wolf">
+  <h1>Weekly Content Review</h1>
+  <span id="week-label"></span>
+</header>
+
+<div class="filter-toggle-bar" id="filter-toggle-bar" style="display:none">
+  <button class="toggle-pill" id="sort-toggle" data-sort="score-desc">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M0 4.75A.75.75 0 0 1 .75 4h14.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 0 4.75ZM0 11.25a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1-.75-.75ZM3 7.5a.75.75 0 0 0 0 1.5h10a.75.75 0 0 0 0-1.5Z"/></svg>
+    <span class="sort-pill-label">High score</span>
+  </button>
+  <button class="toggle-pill" id="filter-toggle">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M2.75 3h10.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5ZM5.25 7.5h5.5a.75.75 0 0 1 0 1.5h-5.5a.75.75 0 0 1 0-1.5ZM7.75 12h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1 0-1.5Z"/></svg>
+    Filters
+    <span class="filter-count" id="filter-count"></span>
+    <svg class="filter-toggle-chevron" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg>
+  </button>
+</div>
+<div class="filter-bar" id="filter-bar">
+  <div class="filter-search-row">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+    <input type="text" id="keyword-search" class="filter-search-input" placeholder="Search posts…">
+  </div>
+  <div class="filter-bar-bottom">
+    <div class="filter-bar-group">
+      <div class="filter-group">
+        <span class="filter-label">Week</span>
+        <div id="f-week"></div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Topic</span>
+        <div id="f-topic"></div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Type</span>
+        <div id="f-type"></div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Feedback</span>
+        <div id="f-feedback">
+          <button class="chip active unreviewed" data-filter="feedback" data-value="unreviewed">Unreviewed</button>
+          <button class="chip active win"        data-filter="feedback" data-value="win">Win</button>
+          <button class="chip active tie"        data-filter="feedback" data-value="tie">Tie</button>
+          <button class="chip active lost"       data-filter="feedback" data-value="lost">Lost</button>
+          <button class="chip-reset" id="feedback-reset" style="display:none">Reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="filter-bar-actions">
+      <button class="btn-filter-reset" id="filter-clear">Reset</button>
+      <button class="btn-filter-search" id="filter-search">Search</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <h2>Posts for approval</h2>
+  <div id="posts"><p class="loading">Loading posts…</p></div>
+</main>
+
+<script src="../app.js"></script>
+</body>
+</html>
