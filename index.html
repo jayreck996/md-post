@@ -97,7 +97,7 @@ document.title = window.__MD_CFG__.title + " — Weekly Content Review";
     a.href = "#" + key;
     a.className = "client-btn" + (key === activeKey ? " active" : "");
     a.textContent = cfg.title;
-    a.addEventListener("click", () => location.reload());
+    a.addEventListener("click", () => setTimeout(() => location.reload(), 0));
     switcher.appendChild(a);
   });
   // Set logo for active client
