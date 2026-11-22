@@ -123,8 +123,8 @@ def build_payload(week: int, rows: list[dict], tree: dict) -> dict:
 def call_mac_mini(payload: dict) -> list[dict]:
     url     = os.environ["GENERATE_CONTENT_URL"].rstrip("/") + "/generate-content"
     headers = {
-        "CF-Access-Client-Id":     os.environ["CF_ACCESS_CLIENT_ID"],
-        "CF-Access-Client-Secret": os.environ["CF_ACCESS_CLIENT_SECRET"],
+        "CF-Access-Client-Id":     os.environ.get("CF_ACCESS_CLIENT_ID", ""),
+        "CF-Access-Client-Secret": os.environ.get("CF_ACCESS_CLIENT_SECRET", ""),
         "X-Listener-Secret":       os.environ["LISTENER_SHARED_SECRET"],
         "Content-Type":            "application/json",
     }
