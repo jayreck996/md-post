@@ -1,15 +1,8 @@
 name: fetch-linkedin
 
 # Step 1a: weekly LinkedIn cache refresh for all clients.
-# Calls the Mac mini listener once per connection and appends each response to
-# JSONL/{CLIENT}/<SLUG>.jsonl. A connection that fails or times out is skipped
-# (not a job failure). Step 1b (refresh-values) always runs afterwards.
-#
-# Client-specific secrets required (replace {CLIENT} with REDWOLF / ASIS):
-#   {CLIENT}_LINKEDIN_FETCH_URL   — Mac mini listener URL for that client
-# Shared secrets:
-#   CF_ACCESS_CLIENT_ID, CF_ACCESS_CLIENT_SECRET, LISTENER_SHARED_SECRET
-# Submodule PATs: JSON_PAT, XLS_PAT, YML_PAT, JSONL_PAT
+# All paths, secret names, and submodule lists are read from
+# YML/{CLIENT}/YML-*.yml via pipeline_config.py.
 
 on:
   schedule:
@@ -41,38 +34,47 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Initialise submodules
+      - name: Init YML submodule (bootstrap for pipeline_config)
         run: |
-          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
-          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
           git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
-          git submodule update --init -- XLS JSON YML JSONL
-          git -C JSON  checkout -B main origin/main
-          git -C XLS   checkout -B main origin/main
-          git -C YML   checkout -B main origin/main
-          git -C JSONL checkout -B main origin/main
+          git submodule update --init -- YML
+          git -C YML checkout -B main origin/main
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
+      - name: Install pyyaml
+        run: pip install pyyaml -q
+
+      - name: Load pipeline config
+        id: cfg
+        run: python3 .github/scripts/pipeline_config.py ${{ matrix.client }} fetch_linkedin
+
+      - name: Init remaining submodules
+        run: |
+          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
+          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
+          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
+          REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
+          git submodule update --init -- $REMAINING
+          for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
+
       - name: Fetch LinkedIn snapshots
         env:
           CLIENT: ${{ matrix.client }}
-          LINKEDIN_FETCH_URL: ${{ secrets[format('{0}_LINKEDIN_FETCH_URL', matrix.client)] }}
-          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
-          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
-          LISTENER_SHARED_SECRET: ${{ secrets.LISTENER_SHARED_SECRET }}
+          LINKEDIN_FETCH_URL: ${{ secrets[steps.cfg.outputs.secret_linkedin_fetch_url] }}
+          LISTENER_SHARED_SECRET: ${{ secrets[steps.cfg.outputs.secret_listener_shared_secret] }}
         run: python3 .github/scripts/fetch_linkedin_cache.py
 
       - name: Commit updated JSONL cache
         run: |
           CLIENT=${{ matrix.client }}
+          JSONL_DIR=${{ steps.cfg.outputs.jsonl_dir }}
           cd JSONL
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -- "${CLIENT}/"
+          git add -- "${JSONL_DIR#JSONL/}/"
           if git diff --cached --quiet; then
             echo "[${CLIENT}] No cache changes — nothing to commit."
             exit 0
@@ -90,9 +92,8 @@ jobs:
           git commit -m "chore(linkedin-cache): update JSONL submodule pointer (${CLIENT})"
           for attempt in 1 2 3 4 5; do
             if git push; then exit 0; fi
-            echo "Push rejected (attempt $attempt) — rebasing onto origin/main..."
-            git fetch origin main
-            git rebase origin/main
+            echo "Push rejected (attempt $attempt) — rebasing..."
+            git fetch origin main && git rebase origin/main
           done
           echo "::error::git push failed after 5 attempts"
           exit 1
@@ -111,21 +112,31 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Initialise submodules
+      - name: Init YML submodule (bootstrap)
         run: |
-          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
-          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
           git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
-          git submodule update --init -- XLS JSON YML JSONL
-          git -C JSON  checkout -B main origin/main
-          git -C XLS   checkout -B main origin/main
-          git -C YML   checkout -B main origin/main
-          git -C JSONL checkout -B main origin/main
+          git submodule update --init -- YML
+          git -C YML checkout -B main origin/main
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
+
+      - name: Install pyyaml
+        run: pip install pyyaml -q
+
+      - name: Load pipeline config
+        id: cfg
+        run: python3 .github/scripts/pipeline_config.py ${{ matrix.client }} fetch_linkedin
+
+      - name: Init remaining submodules
+        run: |
+          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
+          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
+          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
+          REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
+          git submodule update --init -- $REMAINING
+          for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
 
       - name: Refresh subtype values from feedback
         env:
@@ -135,12 +146,13 @@ jobs:
       - name: Commit updated tree
         run: |
           CLIENT=${{ matrix.client }}
+          JSON_FILE=${{ steps.cfg.outputs.json }}
           BOT_NAME="github-actions[bot]"
           BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
           cd JSON
           git config user.name "$BOT_NAME"
           git config user.email "$BOT_EMAIL"
-          git add -- "${CLIENT}/JSON-2026Q4.json"
+          git add -- "${JSON_FILE#JSON/}"
           if git diff --cached --quiet; then
             echo "[${CLIENT}] No value changes — nothing to commit."
             exit 0
@@ -158,9 +170,8 @@ jobs:
           git commit -m "chore(step-1b): update JSON submodule pointer (${CLIENT})"
           for attempt in 1 2 3 4 5; do
             if git push; then exit 0; fi
-            echo "Push rejected (attempt $attempt) — rebasing onto origin/main..."
-            git fetch origin main
-            git rebase origin/main
+            echo "Push rejected (attempt $attempt) — rebasing..."
+            git fetch origin main && git rebase origin/main
           done
           echo "::error::git push failed after 5 attempts"
           exit 1
