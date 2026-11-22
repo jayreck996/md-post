@@ -18,7 +18,7 @@ from pathlib import Path
 CLIENT  = os.environ.get("CLIENT", "REDWOLF").upper()
 QUARTER = "2026Q3"
 TABLE   = f"XLS/{CLIENT}/XLS-2026Q4.xls"
-ASSET   = "ASSET-2026Q4.md"
+ASSET   = f"{CLIENT}/ASSET-2026Q4.md"
 PIPE    = f"YML/{CLIENT}/YML-2026Q4.yml"
 
 SLUG_ORDER = {
