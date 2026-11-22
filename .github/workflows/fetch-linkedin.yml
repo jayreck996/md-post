@@ -1,0 +1,166 @@
+name: fetch-linkedin
+
+# Step 1a: weekly LinkedIn cache refresh for all clients.
+# Calls the Mac mini listener once per connection and appends each response to
+# JSONL/{CLIENT}/<SLUG>.jsonl. A connection that fails or times out is skipped
+# (not a job failure). Step 1b (refresh-values) always runs afterwards.
+#
+# Client-specific secrets required (replace {CLIENT} with REDWOLF / ASIS):
+#   {CLIENT}_LINKEDIN_FETCH_URL   — Mac mini listener URL for that client
+# Shared secrets:
+#   CF_ACCESS_CLIENT_ID, CF_ACCESS_CLIENT_SECRET, LISTENER_SHARED_SECRET
+# Submodule PATs: JSON_PAT, XLS_PAT, YML_PAT, JSONL_PAT
+
+on:
+  schedule:
+    - cron: "0 20 * * 0"   # Sunday 20:00 UTC — before the Monday batch day
+  workflow_dispatch:
+    inputs:
+      client:
+        description: 'Client to run (leave blank for all)'
+        required: false
+      skip_fetch:
+        description: 'Skip step 1a and run only step 1b (refresh-values)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    if: ${{ github.event.inputs.skip_fetch != 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        client: ${{ (github.event.inputs.client != '' && fromJson(format('["{0}"]', github.event.inputs.client))) || fromJson('["REDWOLF","ASIS"]') }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialise submodules
+        run: |
+          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
+          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
+          git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
+          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
+          git submodule update --init -- XLS JSON YML JSONL
+          git -C JSON  checkout -B main origin/main
+          git -C XLS   checkout -B main origin/main
+          git -C YML   checkout -B main origin/main
+          git -C JSONL checkout -B main origin/main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Fetch LinkedIn snapshots
+        env:
+          CLIENT: ${{ matrix.client }}
+          LINKEDIN_FETCH_URL: ${{ secrets[format('{0}_LINKEDIN_FETCH_URL', matrix.client)] }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          LISTENER_SHARED_SECRET: ${{ secrets.LISTENER_SHARED_SECRET }}
+        run: python3 .github/scripts/fetch_linkedin_cache.py
+
+      - name: Commit updated JSONL cache
+        run: |
+          CLIENT=${{ matrix.client }}
+          cd JSONL
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -- "${CLIENT}/"
+          if git diff --cached --quiet; then
+            echo "[${CLIENT}] No cache changes — nothing to commit."
+            exit 0
+          fi
+          git commit -m "chore(linkedin-cache): ${CLIENT} weekly snapshot"
+          for attempt in 1 2 3 4 5; do
+            if git push; then break; fi
+            echo "JSONL push rejected (attempt $attempt) — rebasing..."
+            git fetch origin main && git rebase origin/main
+          done
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -- JSONL
+          git commit -m "chore(linkedin-cache): update JSONL submodule pointer (${CLIENT})"
+          for attempt in 1 2 3 4 5; do
+            if git push; then exit 0; fi
+            echo "Push rejected (attempt $attempt) — rebasing onto origin/main..."
+            git fetch origin main
+            git rebase origin/main
+          done
+          echo "::error::git push failed after 5 attempts"
+          exit 1
+
+  refresh-values:
+    needs: fetch
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        client: ${{ (github.event.inputs.client != '' && fromJson(format('["{0}"]', github.event.inputs.client))) || fromJson('["REDWOLF","ASIS"]') }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialise submodules
+        run: |
+          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
+          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
+          git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
+          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
+          git submodule update --init -- XLS JSON YML JSONL
+          git -C JSON  checkout -B main origin/main
+          git -C XLS   checkout -B main origin/main
+          git -C YML   checkout -B main origin/main
+          git -C JSONL checkout -B main origin/main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Refresh subtype values from feedback
+        env:
+          CLIENT: ${{ matrix.client }}
+        run: python3 .github/scripts/update_tree_values.py
+
+      - name: Commit updated tree
+        run: |
+          CLIENT=${{ matrix.client }}
+          BOT_NAME="github-actions[bot]"
+          BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
+          cd JSON
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
+          git add -- "${CLIENT}/JSON-2026Q4.json"
+          if git diff --cached --quiet; then
+            echo "[${CLIENT}] No value changes — nothing to commit."
+            exit 0
+          fi
+          git commit -m "chore(step-1b): refresh ${CLIENT} subtype values from feedback"
+          for attempt in 1 2 3 4 5; do
+            if git push; then break; fi
+            echo "JSON push rejected (attempt $attempt) — rebasing..."
+            git fetch origin main && git rebase origin/main
+          done
+          cd ..
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
+          git add -- JSON
+          git commit -m "chore(step-1b): update JSON submodule pointer (${CLIENT})"
+          for attempt in 1 2 3 4 5; do
+            if git push; then exit 0; fi
+            echo "Push rejected (attempt $attempt) — rebasing onto origin/main..."
+            git fetch origin main
+            git rebase origin/main
+          done
+          echo "::error::git push failed after 5 attempts"
+          exit 1

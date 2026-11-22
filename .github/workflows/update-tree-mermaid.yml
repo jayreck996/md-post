@@ -1,0 +1,72 @@
+name: update-tree-mermaid
+
+# Whenever either client's JSON tree changes on main, regenerates that client's
+# Mermaid block and replaces it in all open issues for that client.
+# Issues are matched by checking for "JSON/{CLIENT}/" in the issue body.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'JSON/REDWOLF/JSON-2026Q4.json'
+      - 'JSON/ASIS/JSON-2026Q4.json'
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        client: [REDWOLF, ASIS]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.JSON_PAT }}
+
+      - name: Initialise submodules
+        run: |
+          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
+          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
+          git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
+          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
+          git submodule update --init -- XLS JSON YML JSONL
+          git -C JSON  checkout -B main origin/main
+          git -C XLS   checkout -B main origin/main
+          git -C YML   checkout -B main origin/main
+          git -C JSONL checkout -B main origin/main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Generate Mermaid block for ${{ matrix.client }}
+        env:
+          CLIENT: ${{ matrix.client }}
+        run: python3 .github/scripts/gen_tree_mermaid.py > /tmp/mermaid.md
+
+      - name: Update Mermaid section in open issues for ${{ matrix.client }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLIENT: ${{ matrix.client }}
+        run: |
+          ISSUE_NUMBERS=$(gh issue list --state open --json number,body \
+            --jq ".[] | select(.body | contains(\"JSON/${CLIENT}/\")) | .number")
+
+          for ISSUE in $ISSUE_NUMBERS; do
+            gh issue view "$ISSUE" --json body --jq '.body' > /tmp/issue_body.md
+
+            if ! grep -qF '<!-- TREE-START -->' /tmp/issue_body.md; then
+              continue
+            fi
+
+            python3 .github/scripts/replace_tree_section.py \
+              /tmp/issue_body.md /tmp/mermaid.md > /tmp/updated_body.md
+
+            gh issue edit "$ISSUE" --body-file /tmp/updated_body.md
+            echo "[${CLIENT}] Updated issue #${ISSUE} Mermaid block."
+          done
