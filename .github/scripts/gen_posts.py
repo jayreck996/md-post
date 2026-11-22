@@ -14,14 +14,13 @@ import requests
 from datetime import date, timedelta
 from pathlib import Path
 
+
 CLIENT = os.environ.get("CLIENT", "REDWOLF").upper()
 
-QUARTER    = "2026Q3"
 TABLE_PATH = f"XLS/{CLIENT}/XLS-2026Q4.xls"
 TREE_PATH  = f"JSON/{CLIENT}/JSON-2026Q4.json"
-LOG_DIR    = Path("MAY")
+JSONL_DIR  = Path(f"JSONL/{CLIENT}")
 SKILL_PATH = Path(f"{CLIENT}/.claude/skills/generate-post/SKILL.md")
-FETCH_ANCHOR = "####### <!-- ANCHOR MARKER - ADD ALL NEW ENTRIES DIRECTLY BELOW THIS LINE -->"
 
 SLUG_ORDER = {
     "REDWOLF": ["REDWOLF", "NZSA", "ASIS", "NZPOLICE", "JOHNSON", "GALLAGHER", "INNERRANGE", "BOSCH", "ICT", "JACQUES"],
@@ -36,29 +35,25 @@ def week_num() -> int:
     return int(env) if env else date.today().isocalendar()[1]
 
 
-def parse_latest_log_entry(slug: str) -> dict | None:
-    log = LOG_DIR / f"LOG-{QUARTER}.log"
-    if not log.exists():
+def parse_latest_jsonl_entry(slug: str) -> dict | None:
+    path = JSONL_DIR / f"{slug}.jsonl"
+    if not path.exists():
         return None
-    text = log.read_text(encoding="utf-8")
-    anchor_pos = text.find(FETCH_ANCHOR)
-    if anchor_pos == -1:
-        return None
-    after = text[anchor_pos + len(FETCH_ANCHOR):]
-    for m in re.finditer(r"## \S+ (\S+)\n(\{[^\n]+\})", after):
-        if m.group(1) != slug:
+    for line in reversed(path.read_text(encoding="utf-8").splitlines()):
+        line = line.strip()
+        if not line:
             continue
         try:
-            return json.loads(m.group(2))
+            return json.loads(line)
         except json.JSONDecodeError:
-            return None
+            continue
     return None
 
 
 def load_connections(window_start: date, window_end: date) -> list[dict]:
     connections = []
     for slug in SLUG_ORDER:
-        data = parse_latest_log_entry(slug)
+        data = parse_latest_jsonl_entry(slug)
         if not data:
             continue
         recent = [
