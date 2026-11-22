@@ -12,29 +12,16 @@ const CLIENTS = {
   ASIS:    { title: "ASIS New Zealand", tokenVar: "__MD_ASIS__",    csvPath: "ASIS/XLS-2026Q4.xls",    logo: "ASIS/logo.svg"    },
 };
 const _key = location.hash.slice(1).toUpperCase();
-// If no valid hash, show a landing page instead of defaulting silently to one client
 const _cfg = CLIENTS[_key];
 if (_cfg) {
   window.__MD_CFG__ = _cfg;
   document.title = _cfg.title + " — Weekly Content Review";
 }
-// Any hash change (landing card click or back/forward) reloads the page so the
-// correct client config is picked up from scratch.
 window.addEventListener("hashchange", () => location.reload());
 </script>
 <link rel="stylesheet" href="app.css">
 <style>
   header span#week-label { margin-left: 0; }
-
-  /* Landing page shown when no client hash is in the URL */
-  #landing { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 24px; text-align: center; }
-  #landing h2 { font-size: 20px; font-weight: 600; color: #1f2328; margin: 0; }
-  #landing p  { font-size: 14px; color: #636e7b; margin: 0; }
-  .landing-cards { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
-  .landing-card { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 28px 36px; border: 1px solid #d0d7de; border-radius: 10px; background: #fff; cursor: pointer; text-decoration: none; color: inherit; transition: border-color 0.15s, box-shadow 0.15s; min-width: 160px; }
-  .landing-card:hover { border-color: #0969da; box-shadow: 0 2px 8px rgba(9,105,218,0.12); }
-  .landing-card img { width: 56px; height: 56px; object-fit: contain; border-radius: 6px; }
-  .landing-card span { font-size: 14px; font-weight: 600; color: #1f2328; }
 </style>
 </head>
 <body>
@@ -44,24 +31,6 @@ window.addEventListener("hashchange", () => location.reload());
   <h1>Weekly Content Review</h1>
   <span id="week-label"></span>
 </header>
-
-<!-- Landing: shown when URL has no client hash -->
-<div id="landing">
-  <div>
-    <h2>Select a client</h2>
-    <p>Choose which content pipeline to review.</p>
-  </div>
-  <div class="landing-cards">
-    <a class="landing-card" href="#REDWOLF">
-      <img src="REDWOLF/logo.jpg" alt="Red Wolf">
-      <span>Red Wolf</span>
-    </a>
-    <a class="landing-card" href="#ASIS">
-      <img src="ASIS/logo.svg" alt="ASIS New Zealand">
-      <span>ASIS New Zealand</span>
-    </a>
-  </div>
-</div>
 
 <div class="filter-toggle-bar" id="filter-toggle-bar" style="display:none">
   <button class="toggle-pill" id="sort-toggle" data-sort="score-desc">
@@ -121,18 +90,10 @@ window.addEventListener("hashchange", () => location.reload());
 (function() {
   const cfg = window.__MD_CFG__;
   if (cfg) {
-    // Client selected — show content, set logo
     const logo = document.getElementById("client-logo");
     logo.src = cfg.logo;
     logo.alt = cfg.title;
     logo.style.display = "";
-  } else {
-    // No client hash — show landing, hide content area
-    document.getElementById("landing").style.display = "flex";
-    document.getElementById("posts-section").style.display = "none";
-    document.getElementById("filter-toggle-bar").style.display = "none";
-    document.getElementById("filter-bar").style.display = "none";
-    // hashchange fires when user clicks a landing card — reload so app.js runs with new hash
   }
 })();
 </script>
