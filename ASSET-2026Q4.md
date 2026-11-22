@@ -15,6 +15,10 @@ Per-client history is also maintained in REDWOLF/ASSET-2026Q4.md and ASIS/ASSET-
 
 ####### <!-- ANCHOR MARKER - ADD ALL NEW ASSET ENTRIES DIRECTLY BELOW THIS LINE, NEVER DELETE OR EDIT PREVIOUS ASSET ENTRIES-->
 
+## ASSET:md-post 2026-11-23 → py-rss scheduled run did not trigger; manually dispatched
+
+`jayreck996/py-rss` daily cron (`30 17 * * *` UTC = 6:30 AM NZDT) did not fire on 2026-11-23 — all prior runs were `workflow_dispatch`, not `schedule`. GitHub may suppress schedule triggers on repos with no recent cron history. Run 45073354311 triggered manually via `gh workflow run daily.yml` at ~21:40 UTC; completed successfully in 3m47s. No errors.
+
 ## ASSET:md-post 2026-11-22 → monorepo migration: md-redwolf + md-asis unified into jayreck996/md-post
 
 **New repo `jayreck996/md-post` created:**
