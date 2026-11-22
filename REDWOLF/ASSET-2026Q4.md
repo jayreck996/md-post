@@ -11,6 +11,50 @@ REQUIRED FORMAT FOR EACH ASSET ENTRY:
 
 ####### <!-- ANCHOR MARKER - ADD ALL NEW ASSET ENTRIES DIRECTLY BELOW THIS LINE, NEVER DELETE OR EDIT PREVIOUS ASSET ENTRIES-->
 
+## ASSET:md-post 2026-11-22 → monorepo migration: md-redwolf + md-asis unified into jayreck996/md-post
+
+**New repo `jayreck996/md-post` created:**
+- Shared `index.html`, `app.js`, `app.css` — URL hash selects client (`#REDWOLF` / `#ASIS`).
+- `window.__MD_CFG__` object injected per-client at Pages deploy time (`{title, tokenVar, csvPath, logo}`).
+- Both clients served from `jayreck996.github.io/md-post`.
+- GitHub Pages enabled via API (workflow-driven build type).
+
+**All 5 GitHub Actions workflows migrated and unified (CLIENT matrix):**
+- `fetch-linkedin.yml`, `generate-content.yml`, `generate-media.yml`, `update-feedback.yml`, `update-tree-mermaid.yml` — each now accepts `client` input and runs a matrix of `[REDWOLF, ASIS]` by default.
+- `deploy-pages.yml` — injects per-client `config.js` files (`REDWOLF/config.js`, `ASIS/config.js`) with `window.__MD_REDWOLF__` and `window.__MD_ASIS__` tokens.
+
+**All 7 scripts migrated as CLIENT-parameterised versions:**
+- `fetch_linkedin_cache.py`, `gen_posts.py`, `gen_pr_body.py`, `gen_tree_mermaid.py`, `gen_media.py`, `replace_tree_section.py`, `update_tree_values.py`.
+- `gen_media.py` unified from `gen_media_REDWOLF.py` + `gen_media_ASIS.py` — `MEDIA_MODE` env var switches between `submodule` (REDWOLF → IMG/PDF repos) and `repo_local` (ASIS → `MAY/media/2026Q3/`).
+
+**`pipeline_config.py` added (new):**
+- Reads `YML/{CLIENT}/YML-*.yml` `config:` block and emits GitHub Actions outputs.
+- Outputs: `quarter`, `xls`, `json`, `jsonl_dir`, `submodules`, `secret_linkedin_fetch_url`, `secret_generate_content_url`, `secret_listener_shared_secret`, `skill_generate_post`, `skill_generate_media`, `logo`, `logo_mime`, `slug_order`, `media_mode` and mode-specific paths.
+- YML bootstrap pattern: init YML submodule first → run `pipeline_config.py` → init remaining submodules from output. Removes all hardcoded quarter strings from workflows.
+
+**YML `config:` blocks added to both `YML/REDWOLF/YML-2026Q4.yml` and `YML/ASIS/YML-2026Q4.yml`:**
+- Covers `quarter`, `files` (xls, json, jsonl_dir, skill paths, logo), `media` (mode + paths), `secrets` (per-client secret names), `schedule`, `submodules` (per-step list), `slug_order`.
+- Fixed placeholder secret names to per-client: `REDWOLF_GENERATE_CONTENT_URL`, `REDWOLF_LISTENER_SHARED_SECRET`.
+
+**Client subdirectories populated:**
+- `REDWOLF/logo.jpg`, `ASIS/logo.jpg`, `ASIS/logo.svg`.
+- `REDWOLF/.claude/skills/{fetch-linkedin,generate-post,generate-media}/SKILL.md` — copied from `md-redwolf`.
+- `ASIS/.claude/skills/{fetch-linkedin,generate-post,generate-media}/SKILL.md` — copied from `md-asis`.
+- `REDWOLF/ASSET-2026Q3.md`, `REDWOLF/ASSET-2026Q4.md`, `REDWOLF/ISSUE-2026Q4.md` — copied from `md-redwolf`.
+- `ASIS/ASSET-2026Q3.md`, `ASIS/ASSET-2026Q4.md`, `ASIS/ISSUE-2026Q4.md` — copied from `md-asis`.
+
+**`gen_pr_body.py` path fix:**
+- `ASSET = "ASSET-2026Q4.md"` → `ASSET = f"{CLIENT}/ASSET-2026Q4.md"` to prevent REDWOLF/ASIS collision at repo root.
+
+**12 secrets set on `jayreck996/md-post`:**
+- PAT secrets (all same token from `jayreck996.txt`): `JSON_PAT`, `XLS_PAT`, `YML_PAT`, `JSONL_PAT`, `IMG_PAT`, `PDF_PAT`.
+- Mac mini secrets (retrieved via SSH through Cloudflare Tunnel): `REDWOLF_LINKEDIN_FETCH_URL`, `ASIS_LINKEDIN_FETCH_URL`, `REDWOLF_GENERATE_CONTENT_URL`, `ASIS_GENERATE_CONTENT_URL`, `REDWOLF_LISTENER_SHARED_SECRET`, `ASIS_LISTENER_SHARED_SECRET`.
+
+**First test run passed:**
+- `fetch-linkedin` workflow triggered for REDWOLF (run 45002358900) — both jobs green.
+- `fetch (REDWOLF)` 4m51s: YML bootstrapped, pipeline_config loaded, submodules init, LinkedIn snapshots fetched, JSONL committed.
+- `refresh-values (REDWOLF)` 11s: subtype values recalculated, tree JSON committed.
+
 ## ASSET:redwolf 2026-11-22 → XLS rename, Pages fix, media extracted to IMG/PDF submodules
 
 **`jayreck996/CSV` renamed to `jayreck996/XLS`:**
