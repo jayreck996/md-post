@@ -9,7 +9,7 @@
 <script>
 const CLIENTS = {
   REDWOLF: { title: "Red Wolf",        tokenVar: "__MD_REDWOLF__", csvPath: "REDWOLF/XLS-2026Q4.xls", logo: "REDWOLF/logo.jpg" },
-  ASIS:    { title: "ASIS New Zealand", tokenVar: "__MD_ASIS__",    csvPath: "ASIS/XLS-2026Q4.xls",    logo: "ASIS/logo.jpg"    },
+  ASIS:    { title: "ASIS New Zealand", tokenVar: "__MD_ASIS__",    csvPath: "ASIS/XLS-2026Q4.xls",    logo: "ASIS/logo.svg"    },
 };
 const _key = location.hash.slice(1).toUpperCase();
 // If no valid hash, show a landing page instead of defaulting silently to one client
@@ -57,7 +57,7 @@ window.addEventListener("hashchange", () => location.reload());
       <span>Red Wolf</span>
     </a>
     <a class="landing-card" href="#ASIS">
-      <img src="ASIS/logo.jpg" alt="ASIS New Zealand">
+      <img src="ASIS/logo.svg" alt="ASIS New Zealand">
       <span>ASIS New Zealand</span>
     </a>
   </div>
