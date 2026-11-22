@@ -15,6 +15,18 @@ Per-client history is also maintained in REDWOLF/ASSET-2026Q4.md and ASIS/ASSET-
 
 ####### <!-- ANCHOR MARKER - ADD ALL NEW ASSET ENTRIES DIRECTLY BELOW THIS LINE, NEVER DELETE OR EDIT PREVIOUS ASSET ENTRIES-->
 
+## ASSET:md-post 2026-11-23 → py-rss XML feed state after manual trigger (run 45073354311)
+
+Feed totals and new articles detected vs morning baseline (06:33 UTC commit 15de02d6):
+
+ANTHROPIC — 1 article total; no new today. Last: "Linked billing on the Claude Platform" (17 Nov 2026)
+
+COINBASE — 26 articles total; no new since morning. All items normalised to 22 Nov 2026 date. Latest 3: "Coinbase for Agents introduces new Agent Controls", "An Evolution of Leadership at the Coinbase Global Advisory Council", "Beyond the bot: Mapping the agentic trading stack"
+
+NINTENDO — 24 articles total; no new since morning. All items dated 22 Nov 2026. Latest 4: "Ask the Developer Vol. 24, The Legend of Zelda: Ocarina of Time" (Chapters 1–4), "Call of Duty: Modern Warfare 4 is out now for Nintendo Switch 2", "Congrats to The Game Awards 2026 nominees"
+
+OPENAI — 25 articles total; 1 new this evening: "Perplexity and Intelligence" (22 Nov 2026). Previous latest was "Advancing chip design with OpenAI models" (18 Nov 2026)
+
 ## ASSET:md-post 2026-11-23 → py-rss scheduled run did not trigger; manually dispatched
 
 `jayreck996/py-rss` daily cron (`30 17 * * *` UTC = 6:30 AM NZDT) did not fire on 2026-11-23 — all prior runs were `workflow_dispatch`, not `schedule`. GitHub may suppress schedule triggers on repos with no recent cron history. Run 45073354311 triggered manually via `gh workflow run daily.yml` at ~21:40 UTC; completed successfully in 3m47s. No errors.
