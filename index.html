@@ -12,26 +12,56 @@ const CLIENTS = {
   ASIS:    { title: "ASIS New Zealand", tokenVar: "__MD_ASIS__",    csvPath: "ASIS/XLS-2026Q4.xls",    logo: "ASIS/logo.jpg"    },
 };
 const _key = location.hash.slice(1).toUpperCase();
-window.__MD_CFG__ = CLIENTS[_key] || CLIENTS[Object.keys(CLIENTS)[0]];
-document.title = window.__MD_CFG__.title + " — Weekly Content Review";
+// If no valid hash, show a landing page instead of defaulting silently to one client
+const _cfg = CLIENTS[_key];
+if (_cfg) {
+  window.__MD_CFG__ = _cfg;
+  document.title = _cfg.title + " — Weekly Content Review";
+}
+// Any hash change (landing card click or back/forward) reloads the page so the
+// correct client config is picked up from scratch.
+window.addEventListener("hashchange", () => location.reload());
 </script>
 <link rel="stylesheet" href="app.css">
 <style>
-  .client-switcher { display: flex; gap: 6px; margin-left: auto; align-items: center; }
-  .client-btn { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 6px; border: 1px solid #d0d7de; background: #ffffff; color: #636e7b; cursor: pointer; text-decoration: none; transition: all 0.12s; }
-  .client-btn:hover { border-color: #0969da; color: #0969da; background: #f0f6ff; }
-  .client-btn.active { background: #0969da; border-color: #0969da; color: #ffffff; }
   header span#week-label { margin-left: 0; }
+
+  /* Landing page shown when no client hash is in the URL */
+  #landing { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 24px; text-align: center; }
+  #landing h2 { font-size: 20px; font-weight: 600; color: #1f2328; margin: 0; }
+  #landing p  { font-size: 14px; color: #636e7b; margin: 0; }
+  .landing-cards { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .landing-card { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 28px 36px; border: 1px solid #d0d7de; border-radius: 10px; background: #fff; cursor: pointer; text-decoration: none; color: inherit; transition: border-color 0.15s, box-shadow 0.15s; min-width: 160px; }
+  .landing-card:hover { border-color: #0969da; box-shadow: 0 2px 8px rgba(9,105,218,0.12); }
+  .landing-card img { width: 56px; height: 56px; object-fit: contain; border-radius: 6px; }
+  .landing-card span { font-size: 14px; font-weight: 600; color: #1f2328; }
 </style>
 </head>
 <body>
 
 <header>
-  <img id="client-logo" src="" alt="">
+  <img id="client-logo" src="" alt="" style="display:none">
   <h1>Weekly Content Review</h1>
   <span id="week-label"></span>
-  <div class="client-switcher" id="client-switcher"></div>
 </header>
+
+<!-- Landing: shown when URL has no client hash -->
+<div id="landing">
+  <div>
+    <h2>Select a client</h2>
+    <p>Choose which content pipeline to review.</p>
+  </div>
+  <div class="landing-cards">
+    <a class="landing-card" href="#REDWOLF">
+      <img src="REDWOLF/logo.jpg" alt="Red Wolf">
+      <span>Red Wolf</span>
+    </a>
+    <a class="landing-card" href="#ASIS">
+      <img src="ASIS/logo.jpg" alt="ASIS New Zealand">
+      <span>ASIS New Zealand</span>
+    </a>
+  </div>
+</div>
 
 <div class="filter-toggle-bar" id="filter-toggle-bar" style="display:none">
   <button class="toggle-pill" id="sort-toggle" data-sort="score-desc">
@@ -82,28 +112,28 @@ document.title = window.__MD_CFG__.title + " — Weekly Content Review";
   </div>
 </div>
 
-<main>
+<main id="posts-section">
   <h2>Posts for approval</h2>
   <div id="posts"><p class="loading">Loading posts…</p></div>
 </main>
 
 <script>
-// Render client switcher buttons in the header
 (function() {
-  const switcher = document.getElementById("client-switcher");
-  const activeKey = (_key || Object.keys(CLIENTS)[0]);
-  Object.entries(CLIENTS).forEach(([key, cfg]) => {
-    const a = document.createElement("a");
-    a.href = "#" + key;
-    a.className = "client-btn" + (key === activeKey ? " active" : "");
-    a.textContent = cfg.title;
-    a.addEventListener("click", () => setTimeout(() => location.reload(), 0));
-    switcher.appendChild(a);
-  });
-  // Set logo for active client
-  const logo = document.getElementById("client-logo");
-  logo.src = window.__MD_CFG__.logo;
-  logo.alt = window.__MD_CFG__.title;
+  const cfg = window.__MD_CFG__;
+  if (cfg) {
+    // Client selected — show content, set logo
+    const logo = document.getElementById("client-logo");
+    logo.src = cfg.logo;
+    logo.alt = cfg.title;
+    logo.style.display = "";
+  } else {
+    // No client hash — show landing, hide content area
+    document.getElementById("landing").style.display = "flex";
+    document.getElementById("posts-section").style.display = "none";
+    document.getElementById("filter-toggle-bar").style.display = "none";
+    document.getElementById("filter-bar").style.display = "none";
+    // hashchange fires when user clicks a landing card — reload so app.js runs with new hash
+  }
 })();
 </script>
 <script src="app.js"></script>

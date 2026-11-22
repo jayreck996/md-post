@@ -442,6 +442,8 @@ function applyFilters() {
   updateFilterCount();
 }
 
-load().catch(e => {
-  document.getElementById("posts").innerHTML = `<p class="loading" style="color:#f85149">Failed to load: ${e.message}</p>`;
-});
+if (window.__MD_CFG__) {
+  load().catch(e => {
+    document.getElementById("posts").innerHTML = `<p class="loading" style="color:#f85149">Failed to load: ${e.message}</p>`;
+  });
+}
