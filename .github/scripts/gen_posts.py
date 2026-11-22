@@ -17,6 +17,7 @@ from pathlib import Path
 
 CLIENT = os.environ.get("CLIENT", "REDWOLF").upper()
 
+QUARTER    = os.environ.get("QUARTER", "2026Q4")
 TABLE_PATH = f"XLS/{CLIENT}/XLS-2026Q4.xls"
 TREE_PATH  = f"JSON/{CLIENT}/JSON-2026Q4.json"
 JSONL_DIR  = Path(f"JSONL/{CLIENT}")
