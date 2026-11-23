@@ -5,11 +5,8 @@ name: update-tree-mermaid
 # JSON path read from YML/{CLIENT}/YML-*.yml via pipeline_config.py.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'JSON/REDWOLF/JSON-2026Q4.json'
-      - 'JSON/ASIS/JSON-2026Q4.json'
+  schedule:
+    - cron: '0 21 * * 1'   # Monday 21:00 UTC — after generate-content finishes
   workflow_dispatch: {}
 
 permissions:
