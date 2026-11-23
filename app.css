@@ -4,7 +4,19 @@ header { background: #ffffff; border-bottom: 1px solid #d0d7de; padding: 16px 24
 header img { height: 36px; border-radius: 4px; }
 header h1 { font-size: 18px; font-weight: 600; color: #1f2328; }
 header span { font-size: 13px; color: #636e7b; margin-left: auto; }
-main { max-width: 1140px; margin: 32px auto; padding: 0 24px; }
+.layout { display: grid; grid-template-columns: 320px minmax(0, 680px); gap: 24px; max-width: 1140px; margin: 24px auto; padding: 0 24px; align-items: start; }
+.sidebar { position: sticky; top: 24px; }
+.sidebar .filter-toggle-bar { border: 1px solid #d0d7de; border-bottom: none; border-radius: 8px 8px 0 0; padding: 10px 12px; background: #f6f8fa; display: flex; }
+.sidebar .filter-bar { border: 1px solid #d0d7de; border-radius: 0 0 8px 8px; max-height: none !important; overflow: visible !important; padding: 12px !important; transition: none !important; background: #ffffff; }
+.sidebar .filter-bar-bottom { flex-direction: column; gap: 0; }
+.sidebar .filter-bar-group { flex-direction: column; border: none; box-shadow: none; border-radius: 0; overflow: visible; background: transparent; }
+.sidebar .filter-group { border-right: none; border-bottom: 1px solid #eaeef2; padding: 8px 0; width: 100%; }
+.sidebar .filter-group:last-child { border-bottom: none; }
+.sidebar #f-week, .sidebar #f-topic, .sidebar #f-type, .sidebar #f-feedback { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.sidebar .filter-bar-actions { padding-top: 10px; border-top: 1px solid #eaeef2; justify-content: stretch; }
+.sidebar .filter-bar-actions button { flex: 1; }
+main { min-width: 0; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } .sidebar { position: static; } }
 h2 { font-size: 14px; font-weight: 600; color: #636e7b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
 .post { background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
 .post-header { padding: 14px 16px; border-bottom: 1px solid #eaeef2; display: flex; align-items: center; gap: 10px; }
@@ -22,11 +34,7 @@ h2 { font-size: 14px; font-weight: 600; color: #636e7b; text-transform: uppercas
 .media-preview { width: 100%; height: 100%; object-fit: contain; display: block; cursor: pointer; }
 .media-pending { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 100%; border: 1.5px dashed #d0d7de; border-radius: 6px; font-size: 13px; color: #afb8c1; }
 .media-type-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.45); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px; pointer-events: none; }
-.pdf-preview-card { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-decoration: none; color: #636e7b; background: #f6f8fa; transition: background 0.15s; }
-.pdf-preview-card:hover { background: #eef2f5; }
-.pdf-card-label { font-size: 12px; color: #636e7b; text-align: center; padding: 0 16px; word-break: break-all; max-width: 100%; }
-.pdf-card-cta { font-size: 13px; font-weight: 600; color: #0969da; }
-.pdf-preview-card:hover .pdf-card-cta { text-decoration: underline; }
+.pdf-preview { width: 100%; height: 100%; border: none; display: block; background: #f6f8fa; }
 .feedback { padding: 12px 16px; border-top: 1px solid #eaeef2; display: flex; flex-direction: column; gap: 8px; background: #f6f8fa; }
 .feedback-buttons { display: flex; align-items: center; gap: 8px; }
 .feedback-buttons span { font-size: 12px; color: #636e7b; margin-right: 4px; }
