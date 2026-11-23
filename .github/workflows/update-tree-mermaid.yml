@@ -5,9 +5,7 @@ name: update-tree-mermaid
 # JSON path read from YML/{CLIENT}/YML-*.yml via pipeline_config.py.
 
 on:
-  schedule:
-    - cron: '0 21 * * 1'   # Monday 21:00 UTC — after generate-content finishes
-  workflow_dispatch: {}
+  workflow_dispatch: {}   # manual only — weekly schedule moved to jayreck996/JSON
 
 permissions:
   issues: write
