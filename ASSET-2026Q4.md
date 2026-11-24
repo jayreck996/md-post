@@ -14,6 +14,26 @@ Use REDWOLF or ASIS for client-specific changes, md-post for changes that affect
 Per-client history is also maintained in REDWOLF/ASSET-2026Q4.md and ASIS/ASSET-2026Q4.md.
 
 ####### <!-- ANCHOR MARKER - ADD ALL NEW ASSET ENTRIES DIRECTLY BELOW THIS LINE, NEVER DELETE OR EDIT PREVIOUS ASSET ENTRIES-->
+## ASSET:md-post 2026-11-24 → browse_linkedin.py bullet fix; REDWOLF_LINKEDIN_FETCH_URL corrected
+
+**browse_linkedin.py (Mac mini) — `_is_date_like` / `_parse_relative_date` returning 0 posts on large pages.**
+LinkedIn renders dates as `'11h •'` (with trailing bullet `•`) on `/home/`-layout company pages. The existing regex `^\d+\s*(s|m|h|d|w|mo|yr|y)$` failed to match because the bullet was not stripped. Fix: added `re.sub(r"\s*[•·].*$", "", text.strip())` at the top of both functions. Navigation fix to `/posts/?feedView=all` was already applied in the same session. WorkSafe NZ confirmed returning 3 posts after the fix.
+
+**REDWOLF_LINKEDIN_FETCH_URL secret** was set to the wrong path (missing `/fetch`) — all 10 REDWOLF slugs returned HTTP 404. Corrected to `https://redwolf.toigroup.co.nz/fetch` (same pattern as the ASIS fix applied earlier this session).
+
+## ASSET:ASIS 2026-11-24 → new partner slugs added; CERT NZ removed; fetch + week 48 re-run
+
+**fetch_linkedin_cache.py** — added SLUG_MAP entries for 10 new ASIS partners: RISKNZ, BDORISK, NZNWS, NZITF, NCSCNZ, ISACA, SIA, WORKSAFE, ASIAL. CERT NZ removed (LinkedIn page confirmed invalid, 0 followers — absorbed into NCSC which is already in the list).
+
+**gen_posts.py** — ASIS `SLUG_ORDER` replaced with new partner set (removed REDWOLF hardware vendors JOHNSON/GALLAGHER/INNERRANGE/BOSCH/ICT/JACQUES which are irrelevant to this non-profit client).
+
+**JSON/ASIS/JSON-2026Q4.json** — CERT NZ removed from partners; connections section restored to single-line inline format (SHA `012441ec`). Note: intermediate push using `json.dumps(indent=2)` triggered the same `update_tree_values.py` corruption as before — URL keys were rewritten as nested dicts. Recovery: rebuilt using custom serialiser that keeps connections on one line.
+
+fetch-linkedin run 45371779229: 14/14 written (all new partner JSONL snapshots created). Week 48 re-run 45373909631: post-019 to post-024 generated and committed.
+
+## ASSET:REDWOLF 2026-11-24 → fetch-linkedin re-run after URL fix; week 48 regenerated with fresh data
+
+fetch-linkedin run 45375619471: 10/10 written (first successful REDWOLF fetch — previous runs all returned HTTP 404 due to wrong secret URL). Week 48 re-run 45376612296: post-049 to post-054 regenerated with fresh LinkedIn connection data.
 ## ASSET:ASIS 2026-11-24 → fetch-linkedin 404 on Mac mini; new partners missing SLUG_MAP
 
 **fetch-linkedin run 45350028803 — 0 written, 5 skipped (all HTTP 404).**
@@ -131,3 +151,4 @@ See REDWOLF/ASSET-2026Q4.md for full detail.
 See REDWOLF/ASSET-2026Q4.md for full detail.
 
 **4 new submodule repos:** `jayreck996/JSON`, `jayreck996/CSV`, `jayreck996/YML`, `jayreck996/JSONL` (replaces `MAY/LOG-*.log`). Files retired from both org repos: `CAN/TREE-*.json`, `COULD/TABLE-*.csv`, `PIPE-*.yml`, `MAY/LOG-*.log`, `MIGHT/`. All 7 scripts and all 10 workflows updated to use submodule paths. 4 PAT secrets set on both org repos.
+
