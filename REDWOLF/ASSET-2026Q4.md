@@ -11,6 +11,30 @@ REQUIRED FORMAT FOR EACH ASSET ENTRY:
 
 ####### <!-- ANCHOR MARKER - ADD ALL NEW ASSET ENTRIES DIRECTLY BELOW THIS LINE, NEVER DELETE OR EDIT PREVIOUS ASSET ENTRIES-->
 
+## ASSET:REDWOLF 2026-11-24 19:40 → week 48 media generated (post-049 to post-054)
+
+Rows from `jayreck996/XLS` `5c3580d` (REDWOLF week 48). Media pushed to `jayreck996/IMG` `8e48d71` and `jayreck996/PDF` `0aae72a`; URLs and `updatedat` set in `REDWOLF/XLS-2026Q4.xls` (`ad20170`). Same reduced type scale as weeks 45–47, footer "New Zealand". All 1080x1350. Descriptive filenames (not the pipeline's timestamp names), matching earlier hand-built media.
+
+| Item | Media |
+|---|---|
+| post-049 | https://raw.githubusercontent.com/jayreck996/IMG/main/REDWOLF/post-049-holiday-alarm-checks.png |
+| post-050 | https://raw.githubusercontent.com/jayreck996/IMG/main/REDWOLF/post-050-iso-audit-evidence.png |
+| post-051 | https://raw.githubusercontent.com/jayreck996/PDF/main/REDWOLF/post-051-handover-checklist.pdf (+ IMG post-051-slide-1..5.png) |
+| post-052 | mp4 (real video): placeholder, URL left blank |
+| post-053 | https://raw.githubusercontent.com/jayreck996/IMG/main/REDWOLF/post-053-reading-reviews.png |
+| post-054 | https://raw.githubusercontent.com/jayreck996/IMG/main/REDWOLF/post-054-security-wins.gif (7.6s loop) |
+
+**Notes:** No sources on any week 48 row; graphics restate the post copy only.
+- post-050: record-to-standard mapping (e.g. maintenance records → ISO/IEC 27001 equipment protection) is general guidance built from the post, not auditor criteria.
+- post-051: "ask for" and "red flag" lines are Red Wolf guidance. "Since 2005" from the copy is not on the graphic (unverified in repo).
+- post-053: the review card is clearly labelled "Example review" and is illustrative, not a real client review.
+- post-054: counter shows example win categories only, no figures.
+
+**Verify before publishing:**
+- post-051 repeats the handover topic of post-041 (week 47, one week earlier).
+- post-051 copy "Since 2005": confirm founding year.
+- Week 47 second batch (post-043 to post-048, created 22 Nov) still has no media URLs.
+
 ## ASSET:md-post 2026-11-22 → monorepo migration: md-redwolf + md-asis unified into jayreck996/md-post
 
 **New repo `jayreck996/md-post` created:**
