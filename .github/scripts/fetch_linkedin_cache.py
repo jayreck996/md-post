@@ -44,6 +44,15 @@ SLUG_MAP = {
     "Bosch Security and Safety Systems": "BOSCH",
     "Integrated Control Technology (ICT)": "ICT",
     "Jacques Technologies": "JACQUES",
+    "Risk NZ": "RISKNZ",
+    "BDO Risk Report": "BDORISK",
+    "New Zealand Network for Women in Security": "NZNWS",
+    "New Zealand Internet Task Force (NZITF)": "NZITF",
+    "National Cyber Security Centre (NCSC)": "NCSCNZ",
+    "ISACA": "ISACA",
+    "SIA": "SIA",
+    "WorkSafe New Zealand": "WORKSAFE",
+    "ASIAL": "ASIAL",
 }
 
 
@@ -136,3 +145,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
