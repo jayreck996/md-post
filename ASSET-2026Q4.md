@@ -14,6 +14,26 @@ Use REDWOLF or ASIS for client-specific changes, md-post for changes that affect
 Per-client history is also maintained in REDWOLF/ASSET-2026Q4.md and ASIS/ASSET-2026Q4.md.
 
 ####### <!-- ANCHOR MARKER - ADD ALL NEW ASSET ENTRIES DIRECTLY BELOW THIS LINE, NEVER DELETE OR EDIT PREVIOUS ASSET ENTRIES-->
+## ASSET:ASIS 2026-11-24 → fetch-linkedin 404 on Mac mini; new partners missing SLUG_MAP
+
+**fetch-linkedin run 45350028803 — 0 written, 5 skipped (all HTTP 404).**
+Mac mini LinkedIn fetch endpoint returning HTTP 404 for all slugs (ASISNZ, NZSA, ASIS, NZPOLICE). Root cause not yet investigated — the `/fetch-linkedin` route on the Mac mini listener may be down or the URL has changed.
+
+Additionally, the 10 new ASIS partners added to `JSON/ASIS/JSON-2026Q4.json` this session have no entries in `fetch_linkedin_cache.py`'s `SLUG_MAP`: Risk NZ, BDO Risk Report, World Economic Forum Risk Report, New Zealand Network for Women in Security, New Zealand Internet Task Force (NZITF), National Cyber Security Centre (NCSC), ISACA, NZSIS, IFSEC, SIA. These will be skipped with warnings until slug entries are added and corresponding JSONL seed files are created.
+
+Week 48 content was generated without fresh LinkedIn context (JSONL snapshots dated 2026-11-16; all recentPosts fall outside the 7-day window for a Nov 24 run). Pending: fix Mac mini endpoint, add SLUG_MAP entries, re-run fetch-linkedin, then re-run week 48 with `replace=true`.
+
+## ASSET:ASIS 2026-11-24 → JSON connections schema fix; week 48 re-run succeeded
+
+**Root cause: `update_tree_values.py` requires single-line inline connection entries.**
+Previous session wrote `JSON/ASIS/JSON-2026Q4.json` using `json.dumps(..., indent=2)` which produced multi-line connection entries. `update_tree_values.py` processes connections with line-by-line regex (`CONN_RE`): it skips lines ending with `{` (the outer `"Name": {` line) but then matches the inner `"url": "..."` and `"value": 0` lines as if they were top-level connection names, rewriting them as `{ "url": "...", "value": 0 }` nested objects — corrupting the structure on every workflow run.
+
+Fix: rebuilt `JSON/ASIS/JSON-2026Q4.json` with single-line inline entries matching REDWOLF format: `"Name": { "url": "https://...", "value": 0 }` on one line. Pushed via GitHub API (commit `186d523b`).
+
+Previous two re-run attempts (runs 45341299561 and 45342134865) both failed at "Generate issue body" with `TypeError: '>' not supported between instances of 'dict' and 'int'` in `gen_pr_body.py:156` — `meta.get("value", 0) > 0` received a dict because the connections structure was corrupted.
+
+Run 45343063282 (`replace=true`, `week=48`) passed all 12 steps after the fix. Week 48 ASIS content replaced successfully.
+
 
 ## ASSET:md-post 2026-11-23 → py-rss scheduled cron fired (5h late); 3 new Coinbase articles
 
