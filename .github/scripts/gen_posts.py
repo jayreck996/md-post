@@ -25,7 +25,7 @@ SKILL_PATH = Path(f"{CLIENT}/.claude/skills/generate-post/SKILL.md")
 
 SLUG_ORDER = {
     "REDWOLF": ["REDWOLF", "NZSA", "ASIS", "NZPOLICE", "JOHNSON", "GALLAGHER", "INNERRANGE", "BOSCH", "ICT", "JACQUES"],
-    "ASIS":    ["ASISNZ",  "NZSA", "ASIS", "NZPOLICE", "JOHNSON", "GALLAGHER", "INNERRANGE", "BOSCH", "ICT", "JACQUES"],
+    "ASIS":    ["ASISNZ", "NZSA", "ASIS", "NZPOLICE", "RISKNZ", "BDORISK", "NZNWS", "NZITF", "NCSCNZ", "ISACA", "SIA", "WORKSAFE", "ASIAL"],
 }[CLIENT]
 
 PILLARS = ["SERVICES", "INDUSTRY", "AUTHORITY", "PEOPLE", "TRUST", "ENGAGEMENT"]
@@ -224,3 +224,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
