@@ -11,6 +11,10 @@ REQUIRED FORMAT FOR EACH ASSET ENTRY:
 
 ####### <!-- ANCHOR MARKER - ADD ALL NEW ASSET ENTRIES DIRECTLY BELOW THIS LINE, NEVER DELETE OR EDIT PREVIOUS ASSET ENTRIES-->
 
+## ASSET:REDWOLF 2026-11-24 23:55 → week 48 set to the 23:39 content (XLS 90fd5ef) — correction
+
+Client clarified they want the 23:39 regeneration, not the original batch; the previous entry's revert is undone. REDWOLF week 48 rows restored verbatim from `90fd5ef` (shutdown alarm checks, ISO 9001 evidence, project handover carousel, new technician photo, client video, 2026 win question card) with media URLs to the 23:41 media: post-049-shutdown-alarm-checks.png, post-050-iso-9001-evidence.png, post-051-project-handover.pdf (+ post-051-handover-slide-1..5.png), post-054-security-win-question.png. post-052 (jpg) and post-053 (mp4) remain placeholders. Original-batch media removed again. See the 23:41 entry for notes and verify items.
+
 ## ASSET:REDWOLF 2026-11-24 23:55 → week 48 reverted to original content (XLS 5c3580d) at client request
 
 Client asked to keep the first week 48 batch rather than the pipeline's 23:39 regeneration. REDWOLF week 48 rows in `XLS-2026Q4.xls` restored verbatim from `5c3580d` (post-049 to post-054: holiday shutdown checklist, ISO audit evidence, handover carousel, new-hire video, reading reviews, 2026 wins GIF), with media URLs pointing back to the 19:40 media. Media for the revised rows (post-049-shutdown-alarm-checks, post-050-iso-9001-evidence, post-051-project-handover + slides, post-054-security-win-question) removed from IMG/PDF. Original media restored unchanged; see the 19:40 entry for notes and verify items. md-post post JSON from `3ac8623` (revised batch) left untouched.
