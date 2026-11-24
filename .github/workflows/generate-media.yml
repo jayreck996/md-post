@@ -33,7 +33,7 @@ jobs:
       - name: Init YML submodule (bootstrap)
         run: |
           git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git submodule update --init -- YML
+          git submodule update --init --checkout -- YML
           git -C YML checkout -B main origin/main
 
       - uses: actions/setup-python@v5
@@ -55,7 +55,7 @@ jobs:
           git config --global url."https://${{ secrets.IMG_PAT }}@github.com/jayreck996/IMG".insteadOf "https://github.com/jayreck996/IMG" || true
           git config --global url."https://${{ secrets.PDF_PAT }}@github.com/jayreck996/PDF".insteadOf "https://github.com/jayreck996/PDF" || true
           REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
-          git submodule update --init -- $REMAINING
+          git submodule update --init --checkout -- $REMAINING
           for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
 
       - name: Compute week number
