@@ -37,7 +37,7 @@ jobs:
       - name: Init YML submodule (bootstrap for pipeline_config)
         run: |
           git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git submodule update --init -- YML
+          git submodule update --init --checkout -- YML
           git -C YML checkout -B main origin/main
 
       - uses: actions/setup-python@v5
@@ -57,7 +57,7 @@ jobs:
           git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
           git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
           REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
-          git submodule update --init -- $REMAINING
+          git submodule update --init --checkout -- $REMAINING
           for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
 
       - name: Fetch LinkedIn snapshots
@@ -115,7 +115,7 @@ jobs:
       - name: Init YML submodule (bootstrap)
         run: |
           git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git submodule update --init -- YML
+          git submodule update --init --checkout -- YML
           git -C YML checkout -B main origin/main
 
       - uses: actions/setup-python@v5
@@ -135,7 +135,7 @@ jobs:
           git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
           git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
           REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
-          git submodule update --init -- $REMAINING
+          git submodule update --init --checkout -- $REMAINING
           for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
 
       - name: Refresh subtype values from feedback
