@@ -14,6 +14,14 @@ Use REDWOLF or ASIS for client-specific changes, md-post for changes that affect
 Per-client history is also maintained in REDWOLF/ASSET-2026Q4.md and ASIS/ASSET-2026Q4.md.
 
 ####### <!-- ANCHOR MARKER - ADD ALL NEW ASSET ENTRIES DIRECTLY BELOW THIS LINE, NEVER DELETE OR EDIT PREVIOUS ASSET ENTRIES-->
+## ASSET:md-post 2026-11-26 15:01 → YML-directed paths and reliable Pages artifact deployment
+
+YML commit `0ec1a06` made the ASIS and REDWOLF pipeline files the source of truth for shared repository names, checkout directories, post tables, strategy trees, LinkedIn caches, asset logs, skills, logos, media destinations, public media URLs, and the repositories required by each workflow. The ASIS and REDWOLF media destinations are `IMG/{CLIENT}` and `PDF/{CLIENT}`. The initial YML checkout remains the bootstrap step that allows `md-post` to read this configuration.
+
+md-post commit `e7d8e17` updated the active workflows and Python scripts to consume those YML values for reading, writing, staging, and publishing files. `pipeline_config.py` now rejects absolute paths, parent traversal, cross-client data paths, invalid repository names, invalid checkout directories, missing repository definitions, and unknown workflow repository keys. Both clients passed configuration, workflow YAML, shell, media-routing, and integration checks.
+
+Pages runs initially uploaded a `github-pages` artifact successfully but `deploy-pages` found zero artifacts when upload and deployment ran as consecutive steps in one job. Commit `559a2f3` upgraded `upload-pages-artifact` to v4. Commit `0905cb2` separated artifact creation into a `build` job and deployment into a dependent `deploy` job. Run `45738868868` completed successfully with both jobs passing.
+
 ## ASSET:md-post 2026-11-26 14:03 → Shared repo checkouts and push retries
 
 Commit `5467781` removed the `IMG`, `JSON`, `JSONL`, `PDF`, `XLS`, and `YML` submodules from `md-post/main`. Five Actions workflows now check out the shared repos they need directly from `main` into the same paths on the runner. The six local checkout folders were removed after checking for local changes, unpublished commits, and stashes. A normal clone or pull of `md-post` leaves those folders out.
