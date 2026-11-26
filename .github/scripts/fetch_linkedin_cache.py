@@ -2,9 +2,9 @@
 """
 Called by .github/workflows/fetch-linkedin.yml (weekly cron).
 
-Reads JSON/{CLIENT}/JSON-2026Q4.json's connections{}, maps each to its fixed
+Reads the configured strategy tree's connections{}, maps each to its fixed
 slug, and calls the client listener once per connection, appending each
-successful response as a new JSON line to JSONL/{CLIENT}/<SLUG>.jsonl.
+successful response to the configured LinkedIn cache directory.
 
 CLIENT env var selects REDWOLF or ASIS.
 """
@@ -18,11 +18,9 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
 CLIENT    = os.environ.get("CLIENT", "REDWOLF").upper()
-
-TREE_FILE = REPO_ROOT / "JSON" / CLIENT / "JSON-2026Q4.json"
-JSONL_DIR = REPO_ROOT / "JSONL" / CLIENT
+TREE_FILE = Path(os.environ["TREE_PATH"])
+JSONL_DIR = Path(os.environ["LINKEDIN_CACHE_PATH"])
 
 SECONDS_BETWEEN_CALLS = 30
 REQUEST_TIMEOUT = 90
@@ -134,7 +132,7 @@ def main() -> int:
                 continue
             append_entry(slug, parsed)
             fetched += 1
-            print(f"slug={slug}: appended entry to JSONL/{CLIENT}/{slug}.jsonl")
+            print(f"slug={slug}: appended entry to {JSONL_DIR / f'{slug}.jsonl'}")
 
         if i < len(connections) - 1:
             time.sleep(SECONDS_BETWEEN_CALLS)

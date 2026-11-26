@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a Mermaid graph LR from JSON/{CLIENT}/JSON-2026Q4.json.
+"""Generate a Mermaid graph LR from the configured strategy tree.
 
 CLIENT env var selects REDWOLF or ASIS.
 """
@@ -10,7 +10,7 @@ import re
 import sys
 
 CLIENT    = os.environ.get("CLIENT", "REDWOLF").upper()
-TREE_FILE = f"JSON/{CLIENT}/JSON-2026Q4.json"
+TREE_FILE = os.environ["TREE_PATH"]
 
 
 def safe_id(text: str) -> str:

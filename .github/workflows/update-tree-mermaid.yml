@@ -44,48 +44,49 @@ jobs:
         run: python3 .github/scripts/pipeline_config.py ${{ matrix.client }} update_tree_mermaid
 
       - name: Check out JSON
-        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSON ') }}
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.required_repositories), ' json ') }}
         uses: actions/checkout@v4
         with:
-          repository: jayreck996/JSON
+          repository: ${{ steps.cfg.outputs.json_repository }}
           ref: main
-          path: JSON
+          path: ${{ steps.cfg.outputs.json_checkout_path }}
           fetch-depth: 0
           token: ${{ secrets.JSON_PAT }}
 
       - name: Check out XLS
-        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' XLS ') }}
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.required_repositories), ' xls ') }}
         uses: actions/checkout@v4
         with:
-          repository: jayreck996/XLS
+          repository: ${{ steps.cfg.outputs.xls_repository }}
           ref: main
-          path: XLS
+          path: ${{ steps.cfg.outputs.xls_checkout_path }}
           fetch-depth: 0
           token: ${{ secrets.XLS_PAT }}
 
       - name: Check out JSONL
-        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSONL ') }}
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.required_repositories), ' jsonl ') }}
         uses: actions/checkout@v4
         with:
-          repository: jayreck996/JSONL
+          repository: ${{ steps.cfg.outputs.jsonl_repository }}
           ref: main
-          path: JSONL
+          path: ${{ steps.cfg.outputs.jsonl_checkout_path }}
           fetch-depth: 0
           token: ${{ secrets.JSONL_PAT }}
 
       - name: Generate Mermaid block for ${{ matrix.client }}
         env:
           CLIENT: ${{ matrix.client }}
+          TREE_PATH: ${{ steps.cfg.outputs.tree_path }}
         run: python3 .github/scripts/gen_tree_mermaid.py > /tmp/mermaid.md
 
       - name: Update Mermaid section in open issues for ${{ matrix.client }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLIENT: ${{ matrix.client }}
-          JSON_FILE: ${{ steps.cfg.outputs.json }}
+          TREE_PATH: ${{ steps.cfg.outputs.tree_path }}
         run: |
           ISSUE_NUMBERS=$(gh issue list --state open --json number,body \
-            --jq ".[] | select(.body | contains(\"${JSON_FILE}\")) | .number")
+            --jq ".[] | select(.body | contains(\"${TREE_PATH}\")) | .number")
 
           for ISSUE in $ISSUE_NUMBERS; do
             gh issue view "$ISSUE" --json body --jq '.body' > /tmp/issue_body.md

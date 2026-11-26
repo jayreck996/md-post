@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Step 1b: write reviewer-feedback "value" onto JSON/{CLIENT}/JSON-2026Q4.json.
+Step 1b: write reviewer-feedback values onto the configured strategy tree.
 
 CLIENT env var selects REDWOLF or ASIS.
 """
@@ -14,10 +14,8 @@ from collections import defaultdict
 from pathlib import Path
 
 CLIENT = os.environ.get("CLIENT", "REDWOLF").upper()
-ROOT   = Path(__file__).resolve().parents[2]
-
-TREE_PATH  = ROOT / "JSON" / CLIENT / "JSON-2026Q4.json"
-TABLE_PATH = ROOT / "XLS" / CLIENT / "XLS-2026Q4.xls"
+TREE_PATH  = Path(os.environ["TREE_PATH"])
+TABLE_PATH = Path(os.environ["POSTS_PATH"])
 
 SCORES = {"win": 1, "tie": 0, "lost": -1}
 GROUPS = ("own", "associations", "partners")

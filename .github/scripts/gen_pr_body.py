@@ -16,15 +16,13 @@ from datetime import date, timedelta
 from pathlib import Path
 
 CLIENT  = os.environ.get("CLIENT", "REDWOLF").upper()
-QUARTER = "2026Q3"
-TABLE   = f"XLS/{CLIENT}/XLS-2026Q4.xls"
-ASSET   = f"{CLIENT}/ASSET-2026Q4.md"
-PIPE    = f"YML/{CLIENT}/YML-2026Q4.yml"
-
-SLUG_ORDER = {
-    "REDWOLF": ["REDWOLF", "NZSA", "ASIS", "NZPOLICE", "JOHNSON", "GALLAGHER", "INNERRANGE", "BOSCH", "ICT", "JACQUES"],
-    "ASIS":    ["ASISNZ",  "NZSA", "ASIS", "NZPOLICE", "JOHNSON", "GALLAGHER", "INNERRANGE", "BOSCH", "ICT", "JACQUES"],
-}[CLIENT]
+QUARTER = os.environ["QUARTER"]
+TABLE   = os.environ["POSTS_PATH"]
+TREE    = os.environ["TREE_PATH"]
+JSONL_DIR = Path(os.environ["LINKEDIN_CACHE_PATH"])
+ASSET   = os.environ["ASSET_LOG_PATH"]
+PIPE    = os.environ["PIPELINE_PATH"]
+SLUG_ORDER = json.loads(os.environ["SLUG_ORDER"])
 
 
 def pipe_mermaid() -> str:
@@ -51,7 +49,7 @@ def mermaid_block() -> str:
 
 
 def _parse_latest_entry(slug: str) -> dict | None:
-    jsonl_path = Path(f"JSONL/{CLIENT}/{slug}.jsonl")
+    jsonl_path = JSONL_DIR / f"{slug}.jsonl"
     if not jsonl_path.exists():
         return None
     for line in reversed(jsonl_path.read_text(encoding="utf-8").splitlines()):
@@ -141,7 +139,7 @@ def pipeline_para() -> str:
 
 
 def tree_para() -> str:
-    with open(f"JSON/{CLIENT}/JSON-2026Q4.json", encoding="utf-8") as f:
+    with open(TREE, encoding="utf-8") as f:
         data = json.load(f)
     conns    = data.get("connections", {})
     own      = list(conns.get("own", {}).keys())
@@ -245,13 +243,13 @@ def asset_para() -> str:
 
 def gen_pr_body(week: int) -> str:
     return f"""\
-## Pipeline (`YML/{CLIENT}/YML-2026Q4.yml`)
+## Pipeline (`{PIPE}`)
 
 {pipeline_para()}
 
 {pipe_mermaid()}
 
-## Content Strategy Tree (`JSON/{CLIENT}/JSON-2026Q4.json`)
+## Content Strategy Tree (`{TREE}`)
 
 {tree_para()}
 
@@ -261,19 +259,19 @@ def gen_pr_body(week: int) -> str:
 {mermaid_block()}
 <!-- TREE-END -->
 
-## Posts (`XLS/{CLIENT}/XLS-2026Q4.xls`)
+## Posts (`{TABLE}`)
 
 {posts_para(week)}
 
 {posts_table(week)}
 
-## Connection activity (`MAY/`)
+## Connection activity (`{JSONL_DIR}`)
 
 {activity_para(week)}
 
 {connection_activity(week)}
 
-## Assets (`ASSET-2026Q4.md`)
+## Assets (`{ASSET}`)
 
 {asset_para()}
 

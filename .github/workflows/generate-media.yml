@@ -1,7 +1,7 @@
 name: Generate weekly media
 
 # Step 2D: triggers the Mac mini /generate-media endpoint.
-# Media output mode (submodule vs repo_local) and all paths are read from
+# Media repositories and all paths are read from
 # YML/{CLIENT}/YML-*.yml via pipeline_config.py.
 
 on:
@@ -51,52 +51,52 @@ jobs:
         run: python3 .github/scripts/pipeline_config.py ${{ matrix.client }} generate_media
 
       - name: Check out JSON
-        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSON ') }}
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.required_repositories), ' json ') }}
         uses: actions/checkout@v4
         with:
-          repository: jayreck996/JSON
+          repository: ${{ steps.cfg.outputs.json_repository }}
           ref: main
-          path: JSON
+          path: ${{ steps.cfg.outputs.json_checkout_path }}
           fetch-depth: 0
           token: ${{ secrets.JSON_PAT }}
 
       - name: Check out XLS
-        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' XLS ') }}
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.required_repositories), ' xls ') }}
         uses: actions/checkout@v4
         with:
-          repository: jayreck996/XLS
+          repository: ${{ steps.cfg.outputs.xls_repository }}
           ref: main
-          path: XLS
+          path: ${{ steps.cfg.outputs.xls_checkout_path }}
           fetch-depth: 0
           token: ${{ secrets.XLS_PAT }}
 
       - name: Check out JSONL
-        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSONL ') }}
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.required_repositories), ' jsonl ') }}
         uses: actions/checkout@v4
         with:
-          repository: jayreck996/JSONL
+          repository: ${{ steps.cfg.outputs.jsonl_repository }}
           ref: main
-          path: JSONL
+          path: ${{ steps.cfg.outputs.jsonl_checkout_path }}
           fetch-depth: 0
           token: ${{ secrets.JSONL_PAT }}
 
       - name: Check out IMG
-        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' IMG ') }}
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.required_repositories), ' img ') }}
         uses: actions/checkout@v4
         with:
-          repository: jayreck996/IMG
+          repository: ${{ steps.cfg.outputs.img_repository }}
           ref: main
-          path: IMG
+          path: ${{ steps.cfg.outputs.img_checkout_path }}
           fetch-depth: 0
           token: ${{ secrets.IMG_PAT }}
 
       - name: Check out PDF
-        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' PDF ') }}
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.required_repositories), ' pdf ') }}
         uses: actions/checkout@v4
         with:
-          repository: jayreck996/PDF
+          repository: ${{ steps.cfg.outputs.pdf_repository }}
           ref: main
-          path: PDF
+          path: ${{ steps.cfg.outputs.pdf_checkout_path }}
           fetch-depth: 0
           token: ${{ secrets.PDF_PAT }}
 
@@ -116,20 +116,18 @@ jobs:
           LISTENER_SHARED_SECRET: ${{ secrets[steps.cfg.outputs.secret_listener_shared_secret] }}
           CONTENT_WEEK: ${{ steps.week.outputs.num }}
           MEDIA_MODE:  ${{ steps.cfg.outputs.media_mode }}
-          XLS_PATH:    ${{ steps.cfg.outputs.xls }}
-          LOGO_PATH:   ${{ steps.cfg.outputs.logo }}
+          XLS_PATH:    ${{ steps.cfg.outputs.posts_path }}
+          LOGO_PATH:   ${{ steps.cfg.outputs.logo_path }}
           LOGO_MIME:   ${{ steps.cfg.outputs.logo_mime }}
-          SKILL_PATH:  ${{ steps.cfg.outputs.skill_generate_media }}
-          IMG_DIR:     ${{ steps.cfg.outputs.img_dir }}
-          PDF_DIR:     ${{ steps.cfg.outputs.pdf_dir }}
-          IMG_BASE:    ${{ steps.cfg.outputs.img_base }}
-          PDF_BASE:    ${{ steps.cfg.outputs.pdf_base }}
-          MEDIA_DIR:   ${{ steps.cfg.outputs.media_dir }}
-          PAGES_BASE:  ${{ steps.cfg.outputs.pages_base }}
+          SKILL_PATH:  ${{ steps.cfg.outputs.generate_media_skill_path }}
+          IMAGE_DIR:   ${{ steps.cfg.outputs.image_dir }}
+          DOCUMENT_DIR: ${{ steps.cfg.outputs.document_dir }}
+          IMAGE_BASE_URL: ${{ steps.cfg.outputs.image_base_url }}
+          DOCUMENT_BASE_URL: ${{ steps.cfg.outputs.document_base_url }}
         run: python3 .github/scripts/gen_media.py
 
       - name: Publish media in shared repositories
-        if: ${{ steps.cfg.outputs.media_mode == 'submodule' }}
+        if: ${{ steps.cfg.outputs.media_mode == 'shared_repositories' }}
         env:
           CLIENT: ${{ matrix.client }}
           WEEK: ${{ steps.week.outputs.num }}
@@ -137,19 +135,10 @@ jobs:
           bash .github/scripts/publish-changes.sh IMG "media(w${WEEK}): ${CLIENT} week ${WEEK} images" "${CLIENT}/"
           bash .github/scripts/publish-changes.sh PDF "media(w${WEEK}): ${CLIENT} week ${WEEK} PDFs" "${CLIENT}/"
 
-      - name: Publish media in md-post
-        if: ${{ steps.cfg.outputs.media_mode == 'repo_local' }}
-        env:
-          CLIENT: ${{ matrix.client }}
-          WEEK: ${{ steps.week.outputs.num }}
-          MEDIA_DIR: ${{ steps.cfg.outputs.media_dir }}
-        run: |
-          bash .github/scripts/publish-changes.sh . "media(w${WEEK}): ${CLIENT} week ${WEEK} assets" "${MEDIA_DIR}/"
-
       - name: Publish media URLs
         env:
           CLIENT: ${{ matrix.client }}
           WEEK: ${{ steps.week.outputs.num }}
-          XLS_FILE: ${{ steps.cfg.outputs.xls }}
+          POSTS_PATH: ${{ steps.cfg.outputs.posts_path }}
         run: |
-          bash .github/scripts/publish-changes.sh XLS "media(w${WEEK}): ${CLIENT} update media URLs" "${XLS_FILE#XLS/}"
+          bash .github/scripts/publish-changes.sh XLS "media(w${WEEK}): ${CLIENT} update media URLs" "${POSTS_PATH#XLS/}"

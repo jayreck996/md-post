@@ -5,8 +5,7 @@ Reads all config from environment variables set by the generate-media workflow,
 which loads them from the client's pipeline YML via pipeline_config.py.
 
 Supports two output modes:
-  submodule  — writes to IMG/{CLIENT}/ and PDF/{CLIENT}/ submodule dirs
-  repo_local — writes to MAY/media/2026Q3/ (repo-local, served via Pages)
+  shared_repositories — writes to configured IMG and PDF repository paths
 """
 
 import base64
@@ -18,21 +17,16 @@ import requests
 from datetime import date, datetime
 from pathlib import Path
 
-MEDIA_MODE = os.environ.get("MEDIA_MODE", "submodule")
+MEDIA_MODE = os.environ["MEDIA_MODE"]
 TABLE_PATH = os.environ.get("XLS_PATH", "")
 LOGO_PATH  = Path(os.environ.get("LOGO_PATH", ""))
 LOGO_MIME  = os.environ.get("LOGO_MIME", "image/jpeg")
 SKILL_PATH = Path(os.environ.get("SKILL_PATH", ""))
 
-# submodule mode
-IMG_DIR  = Path(os.environ.get("IMG_DIR", ""))
-PDF_DIR  = Path(os.environ.get("PDF_DIR", ""))
-IMG_BASE = os.environ.get("IMG_BASE", "")
-PDF_BASE = os.environ.get("PDF_BASE", "")
-
-# repo_local mode
-MEDIA_DIR  = Path(os.environ.get("MEDIA_DIR", ""))
-PAGES_BASE = os.environ.get("PAGES_BASE", "")
+IMAGE_DIR = Path(os.environ["IMAGE_DIR"])
+DOCUMENT_DIR = Path(os.environ["DOCUMENT_DIR"])
+IMAGE_BASE_URL = os.environ["IMAGE_BASE_URL"]
+DOCUMENT_BASE_URL = os.environ["DOCUMENT_BASE_URL"]
 
 GENERATABLE = {"png", "gif", "pdf"}
 
@@ -116,11 +110,9 @@ def call_mac_mini_one(post: dict, system_prompt: str, logob64: str,
 def output_path(suffix: str) -> tuple[Path, str]:
     ts   = datetime.now()
     name = f"{ts.strftime('%Y%m%d%H%M%S')}{ts.strftime('%f')[:3]}{suffix}"
-    if MEDIA_MODE == "repo_local":
-        return MEDIA_DIR / name, f"{PAGES_BASE}/{name}"
     if suffix == ".pdf":
-        return PDF_DIR / name, f"{PDF_BASE}/{name}"
-    return IMG_DIR / name, f"{IMG_BASE}/{name}"
+        return DOCUMENT_DIR / name, f"{DOCUMENT_BASE_URL}/{name}"
+    return IMAGE_DIR / name, f"{IMAGE_BASE_URL}/{name}"
 
 
 def main() -> None:
@@ -155,11 +147,10 @@ def main() -> None:
     system_prompt = load_system_prompt()
     logob64       = base64.b64encode(LOGO_PATH.read_bytes()).decode()
 
-    if MEDIA_MODE == "repo_local":
-        MEDIA_DIR.mkdir(parents=True, exist_ok=True)
-    else:
-        IMG_DIR.mkdir(parents=True, exist_ok=True)
-        PDF_DIR.mkdir(parents=True, exist_ok=True)
+    if MEDIA_MODE != "shared_repositories":
+        raise ValueError(f"Unsupported MEDIA_MODE: {MEDIA_MODE}")
+    IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+    DOCUMENT_DIR.mkdir(parents=True, exist_ok=True)
 
     all_files: list[dict] = []
     for post in targets:

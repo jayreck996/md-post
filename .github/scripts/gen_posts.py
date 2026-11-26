@@ -17,16 +17,12 @@ from pathlib import Path
 
 CLIENT = os.environ.get("CLIENT", "REDWOLF").upper()
 
-QUARTER    = os.environ.get("QUARTER", "2026Q4")
-TABLE_PATH = f"XLS/{CLIENT}/XLS-2026Q4.xls"
-TREE_PATH  = f"JSON/{CLIENT}/JSON-2026Q4.json"
-JSONL_DIR  = Path(f"JSONL/{CLIENT}")
-SKILL_PATH = Path(f"{CLIENT}/.claude/skills/generate-post/SKILL.md")
-
-SLUG_ORDER = {
-    "REDWOLF": ["REDWOLF", "NZSA", "ASIS", "NZPOLICE", "JOHNSON", "GALLAGHER", "INNERRANGE", "BOSCH", "ICT", "JACQUES"],
-    "ASIS":    ["ASISNZ", "NZSA", "ASIS", "NZPOLICE", "RISKNZ", "BDORISK", "NZNWS", "NZITF", "NCSCNZ", "ISACA", "SIA", "WORKSAFE", "ASIAL"],
-}[CLIENT]
+QUARTER    = os.environ["QUARTER"]
+TABLE_PATH = Path(os.environ["POSTS_PATH"])
+TREE_PATH  = Path(os.environ["TREE_PATH"])
+JSONL_DIR  = Path(os.environ["LINKEDIN_CACHE_PATH"])
+SKILL_PATH = Path(os.environ["GENERATE_POST_SKILL_PATH"])
+SLUG_ORDER = json.loads(os.environ["SLUG_ORDER"])
 
 PILLARS = ["SERVICES", "INDUSTRY", "AUTHORITY", "PEOPLE", "TRUST", "ENGAGEMENT"]
 
@@ -204,7 +200,7 @@ def main() -> None:
         kept = [r for r in existing_rows if r.get("week") != str(week)]
         print(f"[{CLIENT}] Replacing week {week}: dropping {len(existing_rows) - len(kept)} existing rows")
         existing_rows = kept
-    tree = json.loads(Path(TREE_PATH).read_text(encoding="utf-8"))
+    tree = json.loads(TREE_PATH.read_text(encoding="utf-8"))
 
     payload = build_payload(week, existing_rows, tree)
     posts   = call_mac_mini(payload)
