@@ -24,11 +24,14 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Init YML submodule (bootstrap)
-        run: |
-          git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git submodule update --init --checkout -- YML
-          git -C YML checkout -B main origin/main
+      - name: Check out YML
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/YML
+          ref: main
+          path: YML
+          fetch-depth: 0
+          token: ${{ secrets.YML_PAT }}
 
       - uses: actions/setup-python@v5
         with:
@@ -41,14 +44,35 @@ jobs:
         id: cfg
         run: python3 .github/scripts/pipeline_config.py ${{ github.event.client_payload.client || 'REDWOLF' }} update_feedback
 
-      - name: Init remaining submodules
-        run: |
-          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
-          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
-          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
-          REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
-          git submodule update --init --checkout -- $REMAINING
-          for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
+      - name: Check out JSON
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSON ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSON
+          ref: main
+          path: JSON
+          fetch-depth: 0
+          token: ${{ secrets.JSON_PAT }}
+
+      - name: Check out XLS
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' XLS ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/XLS
+          ref: main
+          path: XLS
+          fetch-depth: 0
+          token: ${{ secrets.XLS_PAT }}
+
+      - name: Check out JSONL
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSONL ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSONL
+          ref: main
+          path: JSONL
+          fetch-depth: 0
+          token: ${{ secrets.JSONL_PAT }}
 
       - name: Update feedback in XLS
         env:
@@ -93,27 +117,11 @@ jobs:
           print(f"[{client}] XLS: {post_id} -> {result} (comment: {comment!r})")
           EOF
 
-      - name: Commit and push
+      - name: Publish feedback
+        env:
+          CLIENT: ${{ github.event.client_payload.client || 'REDWOLF' }}
+          POST_ID: ${{ github.event.client_payload.post_id }}
+          RESULT: ${{ github.event.client_payload.result }}
+          XLS_FILE: ${{ steps.cfg.outputs.xls }}
         run: |
-          CLIENT=${{ github.event.client_payload.client || 'REDWOLF' }}
-          XLS_FILE=${{ steps.cfg.outputs.xls }}
-          BOT_NAME="github-actions[bot]"
-          BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
-          cd XLS
-          git config user.name "$BOT_NAME"
-          git config user.email "$BOT_EMAIL"
-          git add -- "${XLS_FILE#XLS/}"
-          git diff --cached --quiet || git commit -m "feedback: ${{ github.event.client_payload.post_id }} -> ${{ github.event.client_payload.result }} (${CLIENT})"
-          for attempt in 1 2 3 4 5; do
-            if git push; then break; fi
-            git fetch origin main && git rebase origin/main
-          done
-          cd ..
-          git config user.name "$BOT_NAME"
-          git config user.email "$BOT_EMAIL"
-          git add XLS
-          git diff --cached --quiet || git commit -m "feedback: update XLS submodule pointer (${CLIENT})"
-          for attempt in 1 2 3 4 5; do
-            if git pull --rebase origin main && git push origin main; then break; fi
-            git fetch origin main && git rebase origin/main
-          done
+          bash .github/scripts/publish-changes.sh XLS "feedback: ${POST_ID} -> ${RESULT} (${CLIENT})" "${XLS_FILE#XLS/}"

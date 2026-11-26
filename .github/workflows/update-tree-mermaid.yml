@@ -23,11 +23,14 @@ jobs:
         with:
           token: ${{ secrets.JSON_PAT }}
 
-      - name: Init YML submodule (bootstrap)
-        run: |
-          git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git submodule update --init --checkout -- YML
-          git -C YML checkout -B main origin/main
+      - name: Check out YML
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/YML
+          ref: main
+          path: YML
+          fetch-depth: 0
+          token: ${{ secrets.YML_PAT }}
 
       - uses: actions/setup-python@v5
         with:
@@ -40,14 +43,35 @@ jobs:
         id: cfg
         run: python3 .github/scripts/pipeline_config.py ${{ matrix.client }} update_tree_mermaid
 
-      - name: Init remaining submodules
-        run: |
-          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
-          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
-          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
-          REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
-          git submodule update --init --checkout -- $REMAINING
-          for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
+      - name: Check out JSON
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSON ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSON
+          ref: main
+          path: JSON
+          fetch-depth: 0
+          token: ${{ secrets.JSON_PAT }}
+
+      - name: Check out XLS
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' XLS ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/XLS
+          ref: main
+          path: XLS
+          fetch-depth: 0
+          token: ${{ secrets.XLS_PAT }}
+
+      - name: Check out JSONL
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSONL ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSONL
+          ref: main
+          path: JSONL
+          fetch-depth: 0
+          token: ${{ secrets.JSONL_PAT }}
 
       - name: Generate Mermaid block for ${{ matrix.client }}
         env:

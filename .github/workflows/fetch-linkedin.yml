@@ -1,7 +1,7 @@
 name: fetch-linkedin
 
 # Step 1a: weekly LinkedIn cache refresh for all clients.
-# All paths, secret names, and submodule lists are read from
+# All paths, secret names, and shared repository lists are read from
 # YML/{CLIENT}/YML-*.yml via pipeline_config.py.
 
 on:
@@ -34,11 +34,14 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Init YML submodule (bootstrap for pipeline_config)
-        run: |
-          git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git submodule update --init --checkout -- YML
-          git -C YML checkout -B main origin/main
+      - name: Check out YML
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/YML
+          ref: main
+          path: YML
+          fetch-depth: 0
+          token: ${{ secrets.YML_PAT }}
 
       - uses: actions/setup-python@v5
         with:
@@ -51,14 +54,35 @@ jobs:
         id: cfg
         run: python3 .github/scripts/pipeline_config.py ${{ matrix.client }} fetch_linkedin
 
-      - name: Init remaining submodules
-        run: |
-          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
-          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
-          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
-          REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
-          git submodule update --init --checkout -- $REMAINING
-          for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
+      - name: Check out JSON
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSON ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSON
+          ref: main
+          path: JSON
+          fetch-depth: 0
+          token: ${{ secrets.JSON_PAT }}
+
+      - name: Check out XLS
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' XLS ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/XLS
+          ref: main
+          path: XLS
+          fetch-depth: 0
+          token: ${{ secrets.XLS_PAT }}
+
+      - name: Check out JSONL
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSONL ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSONL
+          ref: main
+          path: JSONL
+          fetch-depth: 0
+          token: ${{ secrets.JSONL_PAT }}
 
       - name: Fetch LinkedIn snapshots
         env:
@@ -67,36 +91,12 @@ jobs:
           LISTENER_SHARED_SECRET: ${{ secrets[steps.cfg.outputs.secret_listener_shared_secret] }}
         run: python3 .github/scripts/fetch_linkedin_cache.py
 
-      - name: Commit updated JSONL cache
+      - name: Publish updated JSONL cache
+        env:
+          CLIENT: ${{ matrix.client }}
+          JSONL_DIR: ${{ steps.cfg.outputs.jsonl_dir }}
         run: |
-          CLIENT=${{ matrix.client }}
-          JSONL_DIR=${{ steps.cfg.outputs.jsonl_dir }}
-          cd JSONL
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -- "${JSONL_DIR#JSONL/}/"
-          if git diff --cached --quiet; then
-            echo "[${CLIENT}] No cache changes — nothing to commit."
-            exit 0
-          fi
-          git commit -m "chore(linkedin-cache): ${CLIENT} weekly snapshot"
-          for attempt in 1 2 3 4 5; do
-            if git push; then break; fi
-            echo "JSONL push rejected (attempt $attempt) — rebasing..."
-            git fetch origin main && git rebase origin/main
-          done
-          cd ..
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -- JSONL
-          git commit -m "chore(linkedin-cache): update JSONL submodule pointer (${CLIENT})"
-          for attempt in 1 2 3 4 5; do
-            if git push; then exit 0; fi
-            echo "Push rejected (attempt $attempt) — rebasing..."
-            git fetch origin main && git rebase origin/main
-          done
-          echo "::error::git push failed after 5 attempts"
-          exit 1
+          bash .github/scripts/publish-changes.sh JSONL "chore(linkedin-cache): ${CLIENT} weekly snapshot" "${JSONL_DIR#JSONL/}/"
 
   refresh-values:
     needs: fetch
@@ -112,11 +112,14 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Init YML submodule (bootstrap)
-        run: |
-          git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git submodule update --init --checkout -- YML
-          git -C YML checkout -B main origin/main
+      - name: Check out YML
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/YML
+          ref: main
+          path: YML
+          fetch-depth: 0
+          token: ${{ secrets.YML_PAT }}
 
       - uses: actions/setup-python@v5
         with:
@@ -129,49 +132,44 @@ jobs:
         id: cfg
         run: python3 .github/scripts/pipeline_config.py ${{ matrix.client }} fetch_linkedin
 
-      - name: Init remaining submodules
-        run: |
-          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
-          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
-          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
-          REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
-          git submodule update --init --checkout -- $REMAINING
-          for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
+      - name: Check out JSON
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSON ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSON
+          ref: main
+          path: JSON
+          fetch-depth: 0
+          token: ${{ secrets.JSON_PAT }}
+
+      - name: Check out XLS
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' XLS ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/XLS
+          ref: main
+          path: XLS
+          fetch-depth: 0
+          token: ${{ secrets.XLS_PAT }}
+
+      - name: Check out JSONL
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSONL ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSONL
+          ref: main
+          path: JSONL
+          fetch-depth: 0
+          token: ${{ secrets.JSONL_PAT }}
 
       - name: Refresh subtype values from feedback
         env:
           CLIENT: ${{ matrix.client }}
         run: python3 .github/scripts/update_tree_values.py
 
-      - name: Commit updated tree
+      - name: Publish updated tree
+        env:
+          CLIENT: ${{ matrix.client }}
+          JSON_FILE: ${{ steps.cfg.outputs.json }}
         run: |
-          CLIENT=${{ matrix.client }}
-          JSON_FILE=${{ steps.cfg.outputs.json }}
-          BOT_NAME="github-actions[bot]"
-          BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
-          cd JSON
-          git config user.name "$BOT_NAME"
-          git config user.email "$BOT_EMAIL"
-          git add -- "${JSON_FILE#JSON/}"
-          if git diff --cached --quiet; then
-            echo "[${CLIENT}] No value changes — nothing to commit."
-            exit 0
-          fi
-          git commit -m "chore(step-1b): refresh ${CLIENT} subtype values from feedback"
-          for attempt in 1 2 3 4 5; do
-            if git push; then break; fi
-            echo "JSON push rejected (attempt $attempt) — rebasing..."
-            git fetch origin main && git rebase origin/main
-          done
-          cd ..
-          git config user.name "$BOT_NAME"
-          git config user.email "$BOT_EMAIL"
-          git add -- JSON
-          git commit -m "chore(step-1b): update JSON submodule pointer (${CLIENT})"
-          for attempt in 1 2 3 4 5; do
-            if git push; then exit 0; fi
-            echo "Push rejected (attempt $attempt) — rebasing..."
-            git fetch origin main && git rebase origin/main
-          done
-          echo "::error::git push failed after 5 attempts"
-          exit 1
+          bash .github/scripts/publish-changes.sh JSON "chore(step-1b): refresh ${CLIENT} subtype values from feedback" "${JSON_FILE#JSON/}"

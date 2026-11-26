@@ -30,11 +30,14 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Init YML submodule (bootstrap)
-        run: |
-          git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git submodule update --init --checkout -- YML
-          git -C YML checkout -B main origin/main
+      - name: Check out YML
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/YML
+          ref: main
+          path: YML
+          fetch-depth: 0
+          token: ${{ secrets.YML_PAT }}
 
       - uses: actions/setup-python@v5
         with:
@@ -47,16 +50,55 @@ jobs:
         id: cfg
         run: python3 .github/scripts/pipeline_config.py ${{ matrix.client }} generate_media
 
-      - name: Init remaining submodules
-        run: |
-          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
-          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
-          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
-          git config --global url."https://${{ secrets.IMG_PAT }}@github.com/jayreck996/IMG".insteadOf "https://github.com/jayreck996/IMG" || true
-          git config --global url."https://${{ secrets.PDF_PAT }}@github.com/jayreck996/PDF".insteadOf "https://github.com/jayreck996/PDF" || true
-          REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
-          git submodule update --init --checkout -- $REMAINING
-          for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
+      - name: Check out JSON
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSON ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSON
+          ref: main
+          path: JSON
+          fetch-depth: 0
+          token: ${{ secrets.JSON_PAT }}
+
+      - name: Check out XLS
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' XLS ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/XLS
+          ref: main
+          path: XLS
+          fetch-depth: 0
+          token: ${{ secrets.XLS_PAT }}
+
+      - name: Check out JSONL
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSONL ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSONL
+          ref: main
+          path: JSONL
+          fetch-depth: 0
+          token: ${{ secrets.JSONL_PAT }}
+
+      - name: Check out IMG
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' IMG ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/IMG
+          ref: main
+          path: IMG
+          fetch-depth: 0
+          token: ${{ secrets.IMG_PAT }}
+
+      - name: Check out PDF
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' PDF ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/PDF
+          ref: main
+          path: PDF
+          fetch-depth: 0
+          token: ${{ secrets.PDF_PAT }}
 
       - name: Compute week number
         id: week
@@ -86,81 +128,28 @@ jobs:
           PAGES_BASE:  ${{ steps.cfg.outputs.pages_base }}
         run: python3 .github/scripts/gen_media.py
 
-      - name: Commit media (submodule mode)
+      - name: Publish media in shared repositories
         if: ${{ steps.cfg.outputs.media_mode == 'submodule' }}
+        env:
+          CLIENT: ${{ matrix.client }}
+          WEEK: ${{ steps.week.outputs.num }}
         run: |
-          WEEK=${{ steps.week.outputs.num }}
-          CLIENT=${{ matrix.client }}
-          XLS_FILE=${{ steps.cfg.outputs.xls }}
-          BOT_NAME="github-actions[bot]"
-          BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
-          cd IMG
-          git config user.name "$BOT_NAME"; git config user.email "$BOT_EMAIL"
-          git add -- "${CLIENT}/"
-          if ! git diff --cached --quiet; then
-            git commit -m "media(w${WEEK}): ${CLIENT} week ${WEEK} images"
-            for attempt in 1 2 3 4 5; do
-              if git push; then break; fi
-              git fetch origin main && git rebase origin/main
-            done
-          fi
-          cd ..
-          cd PDF
-          git config user.name "$BOT_NAME"; git config user.email "$BOT_EMAIL"
-          git add -- "${CLIENT}/"
-          if ! git diff --cached --quiet; then
-            git commit -m "media(w${WEEK}): ${CLIENT} week ${WEEK} PDFs"
-            for attempt in 1 2 3 4 5; do
-              if git push; then break; fi
-              git fetch origin main && git rebase origin/main
-            done
-          fi
-          cd ..
-          cd XLS
-          git config user.name "$BOT_NAME"; git config user.email "$BOT_EMAIL"
-          git add -- "${XLS_FILE#XLS/}"
-          if ! git diff --cached --quiet; then
-            git commit -m "media(w${WEEK}): ${CLIENT} update media URLs"
-            for attempt in 1 2 3 4 5; do
-              if git push; then break; fi
-              git fetch origin main && git rebase origin/main
-            done
-          fi
-          cd ..
-          git add IMG PDF XLS
-          git diff --cached --quiet && echo "nothing to commit" && exit 0
-          git config user.name "$BOT_NAME"; git config user.email "$BOT_EMAIL"
-          git commit -m "media(w${WEEK}): ${CLIENT} week ${WEEK} assets"
-          for attempt in 1 2 3 4 5; do
-            if git pull --rebase origin main && git push origin main; then break; fi
-            git fetch origin main && git rebase origin/main
-          done
+          bash .github/scripts/publish-changes.sh IMG "media(w${WEEK}): ${CLIENT} week ${WEEK} images" "${CLIENT}/"
+          bash .github/scripts/publish-changes.sh PDF "media(w${WEEK}): ${CLIENT} week ${WEEK} PDFs" "${CLIENT}/"
 
-      - name: Commit media (repo_local mode)
+      - name: Publish media in md-post
         if: ${{ steps.cfg.outputs.media_mode == 'repo_local' }}
+        env:
+          CLIENT: ${{ matrix.client }}
+          WEEK: ${{ steps.week.outputs.num }}
+          MEDIA_DIR: ${{ steps.cfg.outputs.media_dir }}
         run: |
-          WEEK=${{ steps.week.outputs.num }}
-          CLIENT=${{ matrix.client }}
-          XLS_FILE=${{ steps.cfg.outputs.xls }}
-          MEDIA_DIR=${{ steps.cfg.outputs.media_dir }}
-          BOT_NAME="github-actions[bot]"
-          BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
-          cd XLS
-          git config user.name "$BOT_NAME"; git config user.email "$BOT_EMAIL"
-          git add -- "${XLS_FILE#XLS/}"
-          if ! git diff --cached --quiet; then
-            git commit -m "media(w${WEEK}): ${CLIENT} update media URLs"
-            for attempt in 1 2 3 4 5; do
-              if git push; then break; fi
-              git fetch origin main && git rebase origin/main
-            done
-          fi
-          cd ..
-          git add "${MEDIA_DIR}/" XLS
-          git diff --cached --quiet && echo "nothing to commit" && exit 0
-          git config user.name "$BOT_NAME"; git config user.email "$BOT_EMAIL"
-          git commit -m "media(w${WEEK}): ${CLIENT} week ${WEEK} assets"
-          for attempt in 1 2 3 4 5; do
-            if git pull --rebase origin main && git push origin main; then break; fi
-            git fetch origin main && git rebase origin/main
-          done
+          bash .github/scripts/publish-changes.sh . "media(w${WEEK}): ${CLIENT} week ${WEEK} assets" "${MEDIA_DIR}/"
+
+      - name: Publish media URLs
+        env:
+          CLIENT: ${{ matrix.client }}
+          WEEK: ${{ steps.week.outputs.num }}
+          XLS_FILE: ${{ steps.cfg.outputs.xls }}
+        run: |
+          bash .github/scripts/publish-changes.sh XLS "media(w${WEEK}): ${CLIENT} update media URLs" "${XLS_FILE#XLS/}"

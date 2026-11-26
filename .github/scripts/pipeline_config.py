@@ -67,8 +67,8 @@ def emit(outputs: dict[str, str]) -> None:
             print(f"{k}={v}")
 
 
-def submodules_str(cfg: dict, step: str) -> str:
-    subs = cfg.get("submodules", {}).get(step, [])
+def shared_repos_str(cfg: dict, step: str) -> str:
+    subs = cfg.get("shared_repos", cfg.get("submodules", {})).get(step, [])
     return " ".join(subs)
 
 
@@ -96,7 +96,7 @@ def main() -> None:
         "xls":      files.get("xls", ""),
         "json":     files.get("json", ""),
         "jsonl_dir": files.get("jsonl_dir", ""),
-        "submodules": submodules_str(cfg, step),
+        "shared_repos": shared_repos_str(cfg, step),
         # secret names (resolved dynamically in GHA with secrets[name])
         "secret_linkedin_fetch_url":     secs.get("linkedin_fetch_url", ""),
         "secret_generate_content_url":   secs.get("generate_content_url", ""),

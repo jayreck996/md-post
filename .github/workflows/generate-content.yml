@@ -39,11 +39,14 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Init YML submodule (bootstrap)
-        run: |
-          git config --global url."https://${{ secrets.YML_PAT }}@github.com/jayreck996/YML".insteadOf "https://github.com/jayreck996/YML"
-          git submodule update --init --checkout -- YML
-          git -C YML checkout -B main origin/main
+      - name: Check out YML
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/YML
+          ref: main
+          path: YML
+          fetch-depth: 0
+          token: ${{ secrets.YML_PAT }}
 
       - uses: actions/setup-python@v5
         with:
@@ -56,14 +59,35 @@ jobs:
         id: cfg
         run: python3 .github/scripts/pipeline_config.py ${{ matrix.client }} generate_content
 
-      - name: Init remaining submodules
-        run: |
-          git config --global url."https://${{ secrets.JSON_PAT }}@github.com/jayreck996/JSON".insteadOf "https://github.com/jayreck996/JSON"
-          git config --global url."https://${{ secrets.XLS_PAT }}@github.com/jayreck996/XLS".insteadOf "https://github.com/jayreck996/XLS"
-          git config --global url."https://${{ secrets.JSONL_PAT }}@github.com/jayreck996/JSONL".insteadOf "https://github.com/jayreck996/JSONL"
-          REMAINING=$(echo "${{ steps.cfg.outputs.submodules }}" | tr ' ' '\n' | grep -v '^YML$' | tr '\n' ' ')
-          git submodule update --init --checkout -- $REMAINING
-          for sub in $REMAINING; do git -C $sub checkout -B main origin/main; done
+      - name: Check out JSON
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSON ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSON
+          ref: main
+          path: JSON
+          fetch-depth: 0
+          token: ${{ secrets.JSON_PAT }}
+
+      - name: Check out XLS
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' XLS ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/XLS
+          ref: main
+          path: XLS
+          fetch-depth: 0
+          token: ${{ secrets.XLS_PAT }}
+
+      - name: Check out JSONL
+        if: ${{ contains(format(' {0} ', steps.cfg.outputs.shared_repos), ' JSONL ') }}
+        uses: actions/checkout@v4
+        with:
+          repository: jayreck996/JSONL
+          ref: main
+          path: JSONL
+          fetch-depth: 0
+          token: ${{ secrets.JSONL_PAT }}
 
       - name: Compute week number
         id: week
@@ -73,11 +97,6 @@ jobs:
           else
             echo "num=$(python3 -c 'from datetime import date; print(date.today().isocalendar()[1])')" >> $GITHUB_OUTPUT
           fi
-
-      - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Refresh subtype values from feedback
         env:
@@ -93,54 +112,15 @@ jobs:
           CONTENT_REPLACE: ${{ github.event.inputs.replace }}
         run: python3 .github/scripts/gen_posts.py
 
-      - name: Commit generated posts
+      - name: Publish generated posts and tree
+        env:
+          CLIENT: ${{ matrix.client }}
+          WEEK: ${{ steps.week.outputs.num }}
+          XLS_FILE: ${{ steps.cfg.outputs.xls }}
+          JSON_FILE: ${{ steps.cfg.outputs.json }}
         run: |
-          CLIENT=${{ matrix.client }}
-          WEEK=${{ steps.week.outputs.num }}
-          XLS_FILE=${{ steps.cfg.outputs.xls }}
-          JSON_FILE=${{ steps.cfg.outputs.json }}
-          RANGE=$(python3 -c "
-          import csv
-          rows = list(csv.DictReader(open('${XLS_FILE}')))
-          week_rows = [r for r in rows if r['week'] == '${WEEK}']
-          if week_rows:
-              items = [r['item'] for r in week_rows]
-              print(f'{items[0]} to {items[-1]}')
-          else:
-              print('no posts')
-          ")
-          BOT_NAME="github-actions[bot]"
-          BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
-          cd XLS
-          git config user.name "$BOT_NAME"
-          git config user.email "$BOT_EMAIL"
-          git add -- "${XLS_FILE#XLS/}"
-          if ! git diff --cached --quiet; then
-            git commit -m "content(w${WEEK}): ${CLIENT} append week ${WEEK} rows"
-            for attempt in 1 2 3 4 5; do
-              if git push; then break; fi
-              git fetch origin main && git rebase origin/main
-            done
-          fi
-          cd ..
-          cd JSON
-          git config user.name "$BOT_NAME"
-          git config user.email "$BOT_EMAIL"
-          git add -- "${JSON_FILE#JSON/}"
-          if ! git diff --cached --quiet; then
-            git commit -m "content(w${WEEK}): ${CLIENT} update tree values"
-            for attempt in 1 2 3 4 5; do
-              if git push; then break; fi
-              git fetch origin main && git rebase origin/main
-            done
-          fi
-          cd ..
-          git add XLS JSON
-          git commit -m "content(w${WEEK}): ${CLIENT} generate week ${WEEK} batch — ${RANGE}"
-          for i in 1 2 3; do
-            git pull --rebase origin main && git push origin main && break
-            sleep 5
-          done
+          bash .github/scripts/publish-changes.sh XLS "content(w${WEEK}): ${CLIENT} append week ${WEEK} rows" "${XLS_FILE#XLS/}"
+          bash .github/scripts/publish-changes.sh JSON "content(w${WEEK}): ${CLIENT} update tree values" "${JSON_FILE#JSON/}"
 
       - name: Generate issue body
         env:

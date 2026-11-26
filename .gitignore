@@ -2,3 +2,11 @@ REDWOLF/config.js
 ASIS/config.js
 __pycache__/
 *.pyc
+
+# Independent checkouts used by GitHub Actions or local scripts.
+/IMG/
+/JSON/
+/JSONL/
+/PDF/
+/XLS/
+/YML/
