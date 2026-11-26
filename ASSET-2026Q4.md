@@ -14,6 +14,14 @@ Use REDWOLF or ASIS for client-specific changes, md-post for changes that affect
 Per-client history is also maintained in REDWOLF/ASSET-2026Q4.md and ASIS/ASSET-2026Q4.md.
 
 ####### <!-- ANCHOR MARKER - ADD ALL NEW ASSET ENTRIES DIRECTLY BELOW THIS LINE, NEVER DELETE OR EDIT PREVIOUS ASSET ENTRIES-->
+## ASSET:md-post 2026-11-26 14:03 → Shared repo checkouts and push retries
+
+Commit `5467781` removed the `IMG`, `JSON`, `JSONL`, `PDF`, `XLS`, and `YML` submodules from `md-post/main`. Five Actions workflows now check out the shared repos they need directly from `main` into the same paths on the runner. The six local checkout folders were removed after checking for local changes, unpublished commits, and stashes. A normal clone or pull of `md-post` leaves those folders out.
+
+ASIS and REDWOLF continue using dedicated paths on each shared repo's `main`. If another workflow pushes first and changes a different path, `publish-changes.sh` fetches the new tip, rebases its commit, and retries the push. If the upstream change overlaps a path being published, the job stops so it can rerun from the latest state. The script attempts up to five ordinary pushes.
+
+Workflow YAML and shell syntax checks passed locally. A two-writer Git test confirmed that changes to separate paths both land and that an overlapping update stops without overwriting the first push.
+
 ## ASSET:md-post 2026-11-24 → browse_linkedin.py bullet fix; REDWOLF_LINKEDIN_FETCH_URL corrected
 
 **browse_linkedin.py (Mac mini) — `_is_date_like` / `_parse_relative_date` returning 0 posts on large pages.**
