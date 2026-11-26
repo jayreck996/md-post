@@ -184,8 +184,15 @@ async function load() {
   csvRows    = parseCSV(text);
   const rows = csvRows;
 
-  const qMatch = CSV_URL.match(/XLS-(\d{4})(Q\d)\.xls/i);
-  const qLabel = qMatch ? `${qMatch[2]} ${qMatch[1]}` : "";
+  const newestDate = rows
+    .map(row => row.createdat)
+    .filter(Boolean)
+    .sort()
+    .at(-1);
+  const newest = newestDate ? new Date(`${newestDate}T00:00:00`) : null;
+  const qLabel = newest && !Number.isNaN(newest.valueOf())
+    ? `Q${Math.floor(newest.getMonth() / 3) + 1} ${newest.getFullYear()}`
+    : "";
   function syncWeekLabel() {
     const w = document.querySelector("#f-week select")?.value || String(latestWeek);
     document.getElementById("week-label").textContent = w ? `${qLabel} · Week ${w}` : qLabel;

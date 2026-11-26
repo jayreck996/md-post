@@ -2,7 +2,7 @@ name: update-tree-mermaid
 
 # Whenever either client's JSON tree changes on main, regenerates that client's
 # Mermaid block and replaces it in all matching open issues.
-# JSON path read from YML/{CLIENT}/YML-*.yml via pipeline_config.py.
+# JSON path read from YML/{CLIENT}/YML.yml via pipeline_config.py.
 
 on:
   workflow_dispatch: {}   # manual only — weekly schedule moved to jayreck996/JSON

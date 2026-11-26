@@ -15,7 +15,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 QUARTER    = "2026Q3"
-TABLE_PATH = "XLS/ASIS/XLS-2026Q4.xls"
+TABLE_PATH = "XLS/ASIS/XLS.csv"
 MEDIA_DIR  = Path(f"MAY/media/{QUARTER}")
 PAGES_BASE = f"https://jayreck996.github.io/md-post/MAY/media/{QUARTER}"
 SKILL_PATH = Path("ASIS/.claude/skills/generate-media/SKILL.md")

@@ -2,7 +2,7 @@ name: Generate weekly media
 
 # Step 2D: triggers the Mac mini /generate-media endpoint.
 # Media repositories and all paths are read from
-# YML/{CLIENT}/YML-*.yml via pipeline_config.py.
+# YML/{CLIENT}/YML.yml via pipeline_config.py.
 
 on:
   workflow_dispatch:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read explicit client paths from YML and emit GitHub Actions outputs.
+"""Read explicit client paths from YML/{CLIENT}/YML.yml and emit Actions outputs.
 
 Usage:
     python3 .github/scripts/pipeline_config.py <CLIENT> <step>
@@ -36,11 +36,10 @@ STEPS = {
 
 
 def find_yml(client: str) -> Path:
-    base = Path(f"YML/{client}")
-    candidates = sorted(base.glob("YML-*.yml"), reverse=True)
-    if not candidates:
-        raise FileNotFoundError(f"No YML file found in YML/{client}/")
-    return candidates[0]
+    path = Path("YML") / client / "YML.yml"
+    if not path.is_file():
+        raise FileNotFoundError(f"No YML file found at {path}")
+    return path
 
 
 def load_config(client: str) -> dict:

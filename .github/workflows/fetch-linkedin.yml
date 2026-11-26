@@ -2,7 +2,7 @@ name: fetch-linkedin
 
 # Step 1a: weekly LinkedIn cache refresh for all clients.
 # All paths, secret names, and shared repository lists are read from
-# YML/{CLIENT}/YML-*.yml via pipeline_config.py.
+# YML/{CLIENT}/YML.yml via pipeline_config.py.
 
 on:
   schedule:

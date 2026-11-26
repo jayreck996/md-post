@@ -1,7 +1,7 @@
 name: Generate weekly content
 
 # Step 2: calls the Mac mini, appends 6 posts per client to XLS, opens an issue.
-# All paths and secret names read from YML/{CLIENT}/YML-*.yml via pipeline_config.py.
+# All paths and secret names read from YML/{CLIENT}/YML.yml via pipeline_config.py.
 
 on:
   schedule:

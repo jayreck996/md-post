@@ -1,7 +1,7 @@
 name: Update client feedback
 
 # Triggered by repository_dispatch from the review UI.
-# XLS path read from YML/{CLIENT}/YML-*.yml via pipeline_config.py.
+# XLS path read from YML/{CLIENT}/YML.yml via pipeline_config.py.
 #
 # Expected payload fields:
 #   client   — "REDWOLF" or "ASIS" (defaults to "REDWOLF" if absent)

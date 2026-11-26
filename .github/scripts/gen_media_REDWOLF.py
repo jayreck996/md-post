@@ -2,7 +2,7 @@
 """Step 2D (REDWOLF): generate weekly media via Mac mini.
 
 Writes PNG/PDF/GIF to IMG/REDWOLF/ and PDF/REDWOLF/ submodules,
-updates media URL column in XLS/REDWOLF/XLS-2026Q4.xls.
+updates the media URL column in XLS/REDWOLF/XLS.csv.
 """
 
 import base64
@@ -14,7 +14,7 @@ import requests
 from datetime import date, datetime
 from pathlib import Path
 
-TABLE_PATH = "XLS/REDWOLF/XLS-2026Q4.xls"
+TABLE_PATH = "XLS/REDWOLF/XLS.csv"
 IMG_DIR    = Path("IMG/REDWOLF")
 PDF_DIR    = Path("PDF/REDWOLF")
 IMG_BASE   = "https://raw.githubusercontent.com/jayreck996/IMG/main/REDWOLF"
