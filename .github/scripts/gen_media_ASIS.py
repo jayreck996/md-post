@@ -2,7 +2,7 @@
 """Step 2D (ASIS): generate weekly media via Mac mini.
 
 Writes all files to MAY/media/2026Q3/ (repo-local, not submodules).
-Uses SVG logo. URLs are served from jayreck996.github.io/md-post.
+Uses SVG logo. URLs are served from jayreck996.github.io/py-post.
 """
 
 import base64
@@ -17,7 +17,7 @@ from pathlib import Path
 QUARTER    = "2026Q3"
 TABLE_PATH = "XLS/ASIS/XLS.csv"
 MEDIA_DIR  = Path(f"MAY/media/{QUARTER}")
-PAGES_BASE = f"https://jayreck996.github.io/md-post/MAY/media/{QUARTER}"
+PAGES_BASE = f"https://jayreck996.github.io/py-post/MAY/media/{QUARTER}"
 SKILL_PATH = Path("ASIS/.claude/skills/generate-media/SKILL.md")
 LOGO_PATH  = Path("ASIS/logo.svg")
 LOGO_MIME  = "image/svg+xml"

@@ -26,8 +26,8 @@ SECONDS_BETWEEN_CALLS = 30
 REQUEST_TIMEOUT = 90
 
 CLIENT_UA = {
-    "REDWOLF": "redwolf-linkedin-fetch/1.0 (+https://github.com/jayreck996/md-post)",
-    "ASIS":    "asis-linkedin-fetch/1.0 (+https://github.com/jayreck996/md-post)",
+    "REDWOLF": "redwolf-linkedin-fetch/1.0 (+https://github.com/jayreck996/py-post)",
+    "ASIS":    "asis-linkedin-fetch/1.0 (+https://github.com/jayreck996/py-post)",
 }
 
 SLUG_MAP = {
