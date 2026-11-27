@@ -38,9 +38,11 @@ def summarise(commits: str) -> str:
             {
                 "role": "system",
                 "content": (
-                    "You are a concise technical reporter. Given a list of git commit messages, "
-                    "write a 2-3 sentence plain-English summary of what changed today and why. "
-                    "Be specific about the changes, not generic."
+                    "You are a business analyst writing a daily development report for stakeholders. "
+                    "For each git commit, write one paragraph in a professional business tone that explains "
+                    "the business value or operational impact of the change — avoid jargon, focus on what "
+                    "was improved, fixed, or enabled and why it matters. "
+                    "Use the commit hash as a heading (e.g. '### abc1234')."
                 ),
             },
             {
