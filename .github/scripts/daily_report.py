@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+done
+r/bin/env python3
 """Create a daily GitHub issue summarising today's commits using local Ollama (llama3.2:1b)."""
 
 import json
@@ -12,14 +13,22 @@ from datetime import date
 REPO = os.environ["GITHUB_REPOSITORY"]
 TOKEN = os.environ["GITHUB_TOKEN"]
 TODAY = date.today().isoformat()
+MODEL = os.environ.get("MODEL", "llama3.2:1b")
 
 OLLAMA_ENDPOINT = "http://localhost:11434/api/chat"
 
 
 def start_ollama() -> None:
     subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(5)
-    subprocess.run(["ollama", "pull", "llama3.2:1b"], check=True)
+    for _ in range(30):
+        try:
+            urllib.request.urlopen("http://localhost:11434", timeout=2)
+            break
+        except Exception:
+            time.sleep(2)
+    else:
+        raise RuntimeError("Ollama did not start within 60 seconds")
+    subprocess.run(["ollama", "pull", MODEL], check=True)
 
 
 def fetch_commits() -> str:
@@ -32,7 +41,7 @@ def fetch_commits() -> str:
 
 def summarise(commits: str) -> str:
     payload = {
-        "model": "llama3.2:1b",
+        "model": MODEL,
         "stream": False,
         "messages": [
             {
@@ -99,3 +108,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
